@@ -25,6 +25,7 @@ services:
       - "7474:7474"   # Neo4j Browser
       - "7687:7687"   # Bolt protocol
     environment:
+      - NVIDIA_VISIBLE_DEVICES=void
       - NEO4J_AUTH=${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-mirofish}
       - NEO4J_PLUGINS=["apoc"]
       - NEO4J_server_memory_heap_initial__size=512m
@@ -48,13 +49,13 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     restart: unless-stopped
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
+   #deploy:
+    #  resources:
+     #   reservations:
+      #    devices:
+       #     - driver: nvidia
+        #      count: all"
+              
 
 volumes:
   neo4j_data:
