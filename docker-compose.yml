@@ -28,8 +28,8 @@ services:
       - NVIDIA_VISIBLE_DEVICES=void
       - NEO4J_AUTH=${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-mirofish}
       - NEO4J_PLUGINS=["apoc"]
-      - NEO4J_server_memory_heap_initial__size=512m
-      - NEO4J_server_memory_heap_max__size=2g
+      - NEO4J_server_memory_heap_initial__size=256m
+      - NEO4J_server_memory_heap_max__size=1g
     volumes:
       - neo4j_data:/data
       - neo4j_logs:/logs
@@ -49,6 +49,11 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     restart: unless-stopped
+    environment:
+      # CPU-optimized: use all 8 cores for inference
+      - OLLAMA_NUM_PARALLEL=1       # only 1 request at a time on CPU (prevents RAM overload)
+      - OLLAMA_MAX_LOADED_MODELS=1  # keep only 1 model in RAM at a time
+      - OLLAMA_NUM_THREAD=8         # use all 8 CPU cores
    #deploy:
     #  resources:
      #   reservations:
