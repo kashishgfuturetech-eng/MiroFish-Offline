@@ -1,284 +1,220 @@
 <template>
-  <div class="simulation-panel">
-    <!-- Top Control Bar -->
-    <div class="control-bar">
-      <div class="status-group">
-        <!-- Twitter Platform Progress -->
-        <div class="platform-status twitter" :class="{ active: runStatus.twitter_running, completed: runStatus.twitter_completed }">
-          <div class="platform-header">
-            <svg class="platform-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-            </svg>
-            <span class="platform-name">Info Plaza</span>
-            <span v-if="runStatus.twitter_completed" class="status-badge">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
+  <div class="sim">
+    <!-- Control Bar -->
+    <div class="sim__control-bar glass">
+      <!-- Platform Statuses -->
+      <div class="sim__platforms">
+        <!-- Info Plaza (Twitter-like) -->
+        <div class="sim__platform" :class="{'sim__platform--active': runStatus.twitter_running, 'sim__platform--done': runStatus.twitter_completed}">
+          <div class="sim__platform-header">
+            <span class="material-symbols-outlined" style="font-size:16px">public</span>
+            <span class="label-sm sim__platform-name">Info Plaza</span>
+            <span v-if="runStatus.twitter_completed" class="chip chip-green" style="margin-left:auto">
+              <span class="material-symbols-outlined" style="font-size:11px">check</span> Done
             </span>
-          </div>
-          <div class="platform-stats">
-            <span class="stat">
-              <span class="stat-label">ROUND</span>
-              <span class="stat-value mono">{{ runStatus.twitter_current_round || 0 }}<span class="stat-total">/{{ runStatus.total_rounds || maxRounds || '-' }}</span></span>
-            </span>
-            <span class="stat">
-              <span class="stat-label">Elapsed Time</span>
-              <span class="stat-value mono">{{ twitterElapsedTime }}</span>
-            </span>
-            <span class="stat">
-              <span class="stat-label">ACTS</span>
-              <span class="stat-value mono">{{ runStatus.twitter_actions_count || 0 }}</span>
-            </span>
-          </div>
-          <!-- Available Actions Tooltip -->
-          <div class="actions-tooltip">
-            <div class="tooltip-title">Available Actions</div>
-            <div class="tooltip-actions">
-              <span class="tooltip-action">POST</span>
-              <span class="tooltip-action">LIKE</span>
-              <span class="tooltip-action">REPOST</span>
-              <span class="tooltip-action">QUOTE</span>
-              <span class="tooltip-action">FOLLOW</span>
-              <span class="tooltip-action">IDLE</span>
+            <div v-else-if="runStatus.twitter_running" class="ai-chip" style="margin-left:auto;padding:.2rem .5rem">
+              <span class="ai-chip-dot"></span>
+              <span class="label-sm" style="color:var(--secondary)">Live</span>
             </div>
+          </div>
+          <div class="sim__platform-stats">
+            <div class="sim__pstat">
+              <span class="label-sm sim__pstat-label">Round</span>
+              <span class="sim__pstat-val font-mono">{{ runStatus.twitter_current_round || 0 }}<span class="sim__pstat-total">/{{ runStatus.total_rounds || maxRounds || '—' }}</span></span>
+            </div>
+            <div class="sim__pstat">
+              <span class="label-sm sim__pstat-label">Elapsed</span>
+              <span class="sim__pstat-val font-mono">{{ twitterElapsed }}</span>
+            </div>
+            <div class="sim__pstat">
+              <span class="label-sm sim__pstat-label">Actions</span>
+              <span class="sim__pstat-val font-mono">{{ runStatus.twitter_actions_count || 0 }}</span>
+            </div>
+          </div>
+          <!-- Actions Tooltip -->
+          <div class="sim__actions-row">
+            <span class="sim__action-tag label-sm" v-for="a in ['POST','LIKE','REPOST','QUOTE','FOLLOW','IDLE']" :key="a">{{ a }}</span>
           </div>
         </div>
-        
-        <!-- Reddit Platform Progress -->
-        <div class="platform-status reddit" :class="{ active: runStatus.reddit_running, completed: runStatus.reddit_completed }">
-          <div class="platform-header">
-            <svg class="platform-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-            </svg>
-            <span class="platform-name">Topic Community</span>
-            <span v-if="runStatus.reddit_completed" class="status-badge">
-              <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="3">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
+
+        <!-- Divider -->
+        <div class="sim__platform-divider">
+          <span class="material-symbols-outlined" style="color:var(--text-muted);font-size:18px">sync</span>
+        </div>
+
+        <!-- Topic Community (Reddit-like) -->
+        <div class="sim__platform" :class="{'sim__platform--active': runStatus.reddit_running, 'sim__platform--done': runStatus.reddit_completed}">
+          <div class="sim__platform-header">
+            <span class="material-symbols-outlined" style="font-size:16px">forum</span>
+            <span class="label-sm sim__platform-name">Topic Community</span>
+            <span v-if="runStatus.reddit_completed" class="chip chip-green" style="margin-left:auto">
+              <span class="material-symbols-outlined" style="font-size:11px">check</span> Done
             </span>
-          </div>
-          <div class="platform-stats">
-            <span class="stat">
-              <span class="stat-label">ROUND</span>
-              <span class="stat-value mono">{{ runStatus.reddit_current_round || 0 }}<span class="stat-total">/{{ runStatus.total_rounds || maxRounds || '-' }}</span></span>
-            </span>
-            <span class="stat">
-              <span class="stat-label">Elapsed Time</span>
-              <span class="stat-value mono">{{ redditElapsedTime }}</span>
-            </span>
-            <span class="stat">
-              <span class="stat-label">ACTS</span>
-              <span class="stat-value mono">{{ runStatus.reddit_actions_count || 0 }}</span>
-            </span>
-          </div>
-          <!-- Available Actions Tooltip -->
-          <div class="actions-tooltip">
-            <div class="tooltip-title">Available Actions</div>
-            <div class="tooltip-actions">
-              <span class="tooltip-action">POST</span>
-              <span class="tooltip-action">COMMENT</span>
-              <span class="tooltip-action">LIKE</span>
-              <span class="tooltip-action">DISLIKE</span>
-              <span class="tooltip-action">SEARCH</span>
-              <span class="tooltip-action">TREND</span>
-              <span class="tooltip-action">FOLLOW</span>
-              <span class="tooltip-action">MUTE</span>
-              <span class="tooltip-action">REFRESH</span>
-              <span class="tooltip-action">IDLE</span>
+            <div v-else-if="runStatus.reddit_running" class="ai-chip" style="margin-left:auto;padding:.2rem .5rem">
+              <span class="ai-chip-dot"></span>
+              <span class="label-sm" style="color:var(--secondary)">Live</span>
             </div>
+          </div>
+          <div class="sim__platform-stats">
+            <div class="sim__pstat">
+              <span class="label-sm sim__pstat-label">Round</span>
+              <span class="sim__pstat-val font-mono">{{ runStatus.reddit_current_round || 0 }}<span class="sim__pstat-total">/{{ runStatus.total_rounds || maxRounds || '—' }}</span></span>
+            </div>
+            <div class="sim__pstat">
+              <span class="label-sm sim__pstat-label">Elapsed</span>
+              <span class="sim__pstat-val font-mono">{{ redditElapsed }}</span>
+            </div>
+            <div class="sim__pstat">
+              <span class="label-sm sim__pstat-label">Actions</span>
+              <span class="sim__pstat-val font-mono">{{ runStatus.reddit_actions_count || 0 }}</span>
+            </div>
+          </div>
+          <div class="sim__actions-row">
+            <span class="sim__action-tag label-sm" v-for="a in ['POST','COMMENT','LIKE','SHARE','IDLE']" :key="a">{{ a }}</span>
           </div>
         </div>
       </div>
 
-      <div class="action-controls">
-        <button 
-          class="action-btn primary"
-          :disabled="phase !== 2 || isGeneratingReport"
-          @click="handleNextStep"
+      <!-- Right: Controls -->
+      <div class="sim__controls">
+        <button
+          v-if="!isRunning && !isCompleted"
+          class="btn-primary"
+          @click="startSimulation"
+          :disabled="isStarting"
         >
-          <span v-if="isGeneratingReport" class="loading-spinner-small"></span>
-          {{ isGeneratingReport ? 'Starting...' : 'Start Generating Report' }} 
-          <span v-if="!isGeneratingReport" class="arrow-icon">→</span>
+          <span class="material-symbols-outlined" style="font-size:18px">{{ isStarting ? 'hourglass_empty' : 'play_arrow' }}</span>
+          {{ isStarting ? 'Launching…' : 'Start Simulation' }}
+        </button>
+        <button v-else-if="isRunning" class="btn-secondary" @click="stopSimulation">
+          <span class="material-symbols-outlined" style="font-size:18px">stop</span>
+          Stop
+        </button>
+        <button v-if="isCompleted" class="btn-primary" @click="$emit('completed')">
+          View Report
+          <span class="material-symbols-outlined" style="font-size:18px">analytics</span>
         </button>
       </div>
     </div>
 
-    <!-- Main Content: Dual Timeline -->
-    <div class="main-content-area" ref="scrollContainer">
-      <!-- Timeline Header -->
-      <div class="timeline-header" v-if="allActions.length > 0">
-        <div class="timeline-stats">
-          <span class="total-count">TOTAL EVENTS: <span class="mono">{{ allActions.length }}</span></span>
-          <span class="platform-breakdown">
-            <span class="breakdown-item twitter">
-              <svg class="mini-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-              <span class="mono">{{ twitterActionsCount }}</span>
-            </span>
-            <span class="breakdown-divider">/</span>
-            <span class="breakdown-item reddit">
-              <svg class="mini-icon" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-              <span class="mono">{{ redditActionsCount }}</span>
-            </span>
-          </span>
+    <!-- Main Split Layout -->
+    <div class="sim__split">
+      <!-- LEFT: Action Log -->
+      <div class="sim__log card">
+        <div class="sim__log-header">
+          <div class="sim__log-title">
+            <span class="material-symbols-outlined" style="font-size:16px;color:var(--secondary)">terminal</span>
+            <span class="label-sm" style="color:var(--text-muted)">Action Log</span>
+          </div>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <span class="chip chip-muted label-sm">{{ actionLog.length }} events</span>
+            <button class="btn-ghost" style="font-size:.6875rem" @click="actionLog = []">Clear</button>
+          </div>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="sim__log-filters">
+          <button
+            v-for="f in logFilters"
+            :key="f"
+            class="sim__filter-tab"
+            :class="{'sim__filter-tab--active': activeFilter === f}"
+            @click="activeFilter = f"
+          >
+            {{ f }}
+          </button>
+        </div>
+
+        <!-- Log entries -->
+        <div class="sim__log-body" ref="logBodyRef">
+          <div
+            v-for="(entry, i) in filteredLog"
+            :key="i"
+            class="sim__log-entry"
+            :class="`sim__log-entry--${entry.platform}`"
+          >
+            <div class="sim__log-entry-header">
+              <span class="sim__log-entry-time font-mono">{{ entry.time }}</span>
+              <span class="chip label-sm" :class="entry.platform === 'twitter' ? 'chip-blue' : 'chip-orange'" style="font-size:.55rem">
+                {{ entry.platform === 'twitter' ? 'Info Plaza' : 'Topic' }}
+              </span>
+              <span class="sim__log-entry-action chip chip-muted label-sm">{{ entry.action }}</span>
+            </div>
+            <div class="sim__log-entry-content">
+              <span class="sim__log-entry-agent font-mono">{{ entry.agent }}</span>
+              <span class="sim__log-entry-text">{{ entry.text }}</span>
+            </div>
+          </div>
+
+          <div v-if="!filteredLog.length" class="sim__log-empty">
+            <span class="material-symbols-outlined" style="font-size:32px;color:var(--text-muted)">inbox</span>
+            <span class="label-sm" style="color:var(--text-muted)">No events yet. Start the simulation.</span>
+          </div>
         </div>
       </div>
-      
-      <!-- Timeline Feed -->
-      <div class="timeline-feed">
-        <div class="timeline-axis"></div>
-        
-        <TransitionGroup name="timeline-item">
-          <div 
-            v-for="action in chronologicalActions" 
-            :key="action._uniqueId || action.id || `${action.timestamp}-${action.agent_id}`" 
-            class="timeline-item"
-            :class="action.platform"
-          >
-            <div class="timeline-marker">
-              <div class="marker-dot"></div>
-            </div>
-            
-            <div class="timeline-card">
-              <div class="card-header">
-                <div class="agent-info">
-                  <div class="avatar-placeholder">{{ (action.agent_name || 'A')[0] }}</div>
-                  <span class="agent-name">{{ action.agent_name }}</span>
-                </div>
-                
-                <div class="header-meta">
-                  <div class="platform-indicator">
-                    <svg v-if="action.platform === 'twitter'" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-                    <svg v-else viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                  </div>
-                  <div class="action-badge" :class="getActionTypeClass(action.action_type)">
-                    {{ getActionTypeLabel(action.action_type) }}
-                  </div>
-                </div>
-              </div>
-              
-              <div class="card-body">
-                <!-- CREATE_POST: Post Publication -->
-                <div v-if="action.action_type === 'CREATE_POST' && action.action_args?.content" class="content-text main-text">
-                  {{ action.action_args.content }}
-                </div>
 
-                <!-- QUOTE_POST: Quote Post -->
-                <template v-if="action.action_type === 'QUOTE_POST'">
-                  <div v-if="action.action_args?.quote_content" class="content-text">
-                    {{ action.action_args.quote_content }}
-                  </div>
-                  <div v-if="action.action_args?.original_content" class="quoted-block">
-                    <div class="quote-header">
-                      <svg class="icon-small" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                      <span class="quote-label">@{{ action.action_args.original_author_name || 'User' }}</span>
-                    </div>
-                    <div class="quote-text">
-                      {{ truncateContent(action.action_args.original_content, 150) }}
-                    </div>
-                  </div>
-                </template>
-
-                <!-- REPOST: Repost -->
-                <template v-if="action.action_type === 'REPOST'">
-                  <div class="repost-info">
-                    <svg class="icon-small" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg>
-                    <span class="repost-label">Reposted from @{{ action.action_args?.original_author_name || 'User' }}</span>
-                  </div>
-                  <div v-if="action.action_args?.original_content" class="repost-content">
-                    {{ truncateContent(action.action_args.original_content, 200) }}
-                  </div>
-                </template>
-
-                <!-- LIKE_POST: Like Post -->
-                <template v-if="action.action_type === 'LIKE_POST'">
-                  <div class="like-info">
-                    <svg class="icon-small filled" viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                    <span class="like-label">Liked @{{ action.action_args?.post_author_name || 'User' }}'s post</span>
-                  </div>
-                  <div v-if="action.action_args?.post_content" class="liked-content">
-                    "{{ truncateContent(action.action_args.post_content, 120) }}"
-                  </div>
-                </template>
-
-                <!-- CREATE_COMMENT: Create Comment -->
-                <template v-if="action.action_type === 'CREATE_COMMENT'">
-                  <div v-if="action.action_args?.content" class="content-text">
-                    {{ action.action_args.content }}
-                  </div>
-                  <div v-if="action.action_args?.post_id" class="comment-context">
-                    <svg class="icon-small" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
-                    <span>Reply to post #{{ action.action_args.post_id }}</span>
-                  </div>
-                </template>
-
-                <!-- SEARCH_POSTS: Search Posts -->
-                <template v-if="action.action_type === 'SEARCH_POSTS'">
-                  <div class="search-info">
-                    <svg class="icon-small" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <span class="search-label">Search Query:</span>
-                    <span class="search-query">"{{ action.action_args?.query || '' }}"</span>
-                  </div>
-                </template>
-
-                <!-- FOLLOW: Follow User -->
-                <template v-if="action.action_type === 'FOLLOW'">
-                  <div class="follow-info">
-                    <svg class="icon-small" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
-                    <span class="follow-label">Followed @{{ action.action_args?.target_user || action.action_args?.user_id || 'User' }}</span>
-                  </div>
-                </template>
-
-                <!-- UPVOTE / DOWNVOTE -->
-                <template v-if="action.action_type === 'UPVOTE_POST' || action.action_type === 'DOWNVOTE_POST'">
-                  <div class="vote-info">
-                    <svg v-if="action.action_type === 'UPVOTE_POST'" class="icon-small" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"></polyline></svg>
-                    <svg v-else class="icon-small" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                    <span class="vote-label">{{ action.action_type === 'UPVOTE_POST' ? 'Upvoted' : 'Downvoted' }} Post</span>
-                  </div>
-                  <div v-if="action.action_args?.post_content" class="voted-content">
-                    "{{ truncateContent(action.action_args.post_content, 120) }}"
-                  </div>
-                </template>
-
-                <!-- DO_NOTHING: No Action (Idle) -->
-                <template v-if="action.action_type === 'DO_NOTHING'">
-                  <div class="idle-info">
-                    <svg class="icon-small" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                    <span class="idle-label">Action Skipped</span>
-                  </div>
-                </template>
-
-                <!-- Generic Fallback: Unknown types or content not handled above -->
-                <div v-if="!['CREATE_POST', 'QUOTE_POST', 'REPOST', 'LIKE_POST', 'CREATE_COMMENT', 'SEARCH_POSTS', 'FOLLOW', 'UPVOTE_POST', 'DOWNVOTE_POST', 'DO_NOTHING'].includes(action.action_type) && action.action_args?.content" class="content-text">
-                  {{ action.action_args.content }}
-                </div>
-              </div>
-
-              <div class="card-footer">
-                <span class="time-tag">R{{ action.round_num }} • {{ formatActionTime(action.timestamp) }}</span>
-                <!-- Platform tag removed as it is in header now -->
+      <!-- RIGHT: Live Stats + Activity Graph -->
+      <div class="sim__right">
+        <!-- Live Metrics -->
+        <div class="sim__metrics card">
+          <span class="label-sm" style="color:var(--text-muted);margin-bottom:.75rem;display:block">Live Metrics</span>
+          <div class="sim__metrics-grid">
+            <div class="sim__metric card-nested" v-for="m in liveMetrics" :key="m.label">
+              <div class="sim__metric-val font-headline">{{ m.value }}</div>
+              <div class="label-sm" style="color:var(--text-muted)">{{ m.label }}</div>
+              <div v-if="m.trend" class="sim__metric-trend" :class="m.trend > 0 ? 'sim__metric-trend--up' : 'sim__metric-trend--down'">
+                <span class="material-symbols-outlined" style="font-size:12px">{{ m.trend > 0 ? 'trending_up' : 'trending_down' }}</span>
+                {{ Math.abs(m.trend) }}%
               </div>
             </div>
           </div>
-        </TransitionGroup>
-
-        <div v-if="allActions.length === 0" class="waiting-state">
-          <div class="pulse-ring"></div>
-          <span>Waiting for agent actions...</span>
         </div>
-      </div>
-    </div>
 
-    <!-- Bottom Info / Logs -->
-    <div class="system-logs">
-      <div class="log-header">
-        <span class="log-title">SIMULATION MONITOR</span>
-        <span class="log-id">{{ simulationId || 'NO_SIMULATION' }}</span>
-      </div>
-      <div class="log-content" ref="logContent">
-        <div class="log-line" v-for="(log, idx) in systemLogs" :key="idx">
-          <span class="log-time">{{ log.time }}</span>
-          <span class="log-msg">{{ log.msg }}</span>
+        <!-- Activity Heatmap / Mini Graph -->
+        <div class="sim__graph card">
+          <div class="sim__graph-header">
+            <span class="label-sm" style="color:var(--text-muted)">Activity Distribution</span>
+            <div style="display:flex;gap:.375rem">
+              <span class="sim__legend-dot" style="background:var(--primary-container)"></span>
+              <span class="label-sm" style="color:var(--text-muted)">Info Plaza</span>
+              <span class="sim__legend-dot" style="background:var(--secondary-container);margin-left:.5rem"></span>
+              <span class="label-sm" style="color:var(--text-muted)">Topic</span>
+            </div>
+          </div>
+          <div class="sim__graph-bars">
+            <div
+              v-for="(bar, i) in activityBars"
+              :key="i"
+              class="sim__graph-bar-group"
+              :title="`Round ${bar.round}`"
+            >
+              <div class="sim__graph-bar sim__graph-bar--twitter" :style="`height:${bar.twitter}%`"></div>
+              <div class="sim__graph-bar sim__graph-bar--reddit"  :style="`height:${bar.reddit}%`"></div>
+            </div>
+          </div>
+          <div class="sim__graph-axis">
+            <span class="label-sm" v-for="l in graphAxisLabels" :key="l" style="color:var(--text-muted)">{{ l }}</span>
+          </div>
+        </div>
+
+        <!-- Agent Status Grid -->
+        <div class="sim__agents card">
+          <span class="label-sm" style="color:var(--text-muted);margin-bottom:.75rem;display:block">Agent Status</span>
+          <div class="sim__agents-grid">
+            <div
+              v-for="agent in agentGrid"
+              :key="agent.id"
+              class="sim__agent-dot"
+              :class="`sim__agent-dot--${agent.status}`"
+              :title="`${agent.name} · ${agent.status}`"
+            ></div>
+          </div>
+          <div class="sim__agents-legend">
+            <div class="sim__agents-legend-item" v-for="l in agentLegend" :key="l.label">
+              <span class="sim__legend-dot" :style="`background:${l.color}`"></span>
+              <span class="label-sm" style="color:var(--text-muted)">{{ l.label }}</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -286,979 +222,485 @@
 </template>
 
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
-import { 
-  startSimulation, 
-  stopSimulation,
-  getRunStatus, 
-  getRunStatusDetail
-} from '../api/simulation'
-import { generateReport } from '../api/report'
+import { ref, computed, onUnmounted, nextTick } from 'vue'
 
-const props = defineProps({
-  simulationId: String,
-  maxRounds: Number, // Max rounds passed from Step2
-  minutesPerRound: {
-    type: Number,
-    default: 30 // Default: 30 minutes per round
-  },
-  projectData: Object,
-  graphData: Object,
-  systemLogs: Array
-})
+const props = defineProps({ simulationId: String })
+const emit = defineEmits(['completed'])
 
-const emit = defineEmits(['go-back', 'next-step', 'add-log', 'update-status'])
-
-const router = useRouter()
-
-// State
-const isGeneratingReport = ref(false)
-const phase = ref(0) // 0: Not started, 1: Running, 2: Completed
+const maxRounds = ref(100)
 const isStarting = ref(false)
-const isStopping = ref(false)
-const startError = ref(null)
-const runStatus = ref({})
-const allActions = ref([]) // All actions (incremental accumulation)
-const actionIds = ref(new Set()) // Action IDs set for deduplication
-const scrollContainer = ref(null)
+const isRunning = ref(false)
+const isCompleted = ref(false)
+const activeFilter = ref('All')
+const logBodyRef = ref(null)
 
-// Computed
-// Display actions in chronological order (newest at the bottom)
-const chronologicalActions = computed(() => {
-  return allActions.value
+const logFilters = ['All', 'Info Plaza', 'Topic', 'POST', 'LIKE', 'COMMENT']
+
+let simInterval = null
+let twitterStart = null
+let redditStart = null
+let twitterTimer = null
+let redditTimer = null
+
+const twitterElapsed = ref('00:00')
+const redditElapsed  = ref('00:00')
+
+const runStatus = ref({
+  twitter_running: false, twitter_completed: false, twitter_current_round: 0, twitter_actions_count: 0,
+  reddit_running:  false, reddit_completed:  false, reddit_current_round:  0, reddit_actions_count:  0,
+  total_rounds: 100,
 })
 
-// Count actions per platform
-const twitterActionsCount = computed(() => {
-  return allActions.value.filter(a => a.platform === 'twitter').length
+const actionLog = ref([])
+const activityBars = ref(Array.from({ length: 24 }, (_, i) => ({ round: i * 4, twitter: 0, reddit: 0 })))
+const graphAxisLabels = ['0', '25', '50', '75', '100']
+
+const agentGrid = ref(Array.from({ length: 50 }, (_, i) => ({ id: i, name: `Agent_${String(i+1).padStart(3,'0')}`, status: 'idle' })))
+
+const agentLegend = [
+  { label: 'Active', color: 'var(--primary-container)' },
+  { label: 'Thinking', color: 'var(--secondary)' },
+  { label: 'Idle', color: 'var(--surface-container-highest)' },
+  { label: 'Done', color: '#86EFAC' },
+]
+
+const liveMetrics = computed(() => [
+  { label: 'Total Actions', value: (runStatus.value.twitter_actions_count + runStatus.value.reddit_actions_count).toLocaleString(), trend: isRunning.value ? 12 : null },
+  { label: 'Active Agents', value: agentGrid.value.filter(a => a.status === 'active').length, trend: null },
+  { label: 'Posts Created', value: Math.floor(runStatus.value.twitter_actions_count * 0.35), trend: isRunning.value ? 8 : null },
+  { label: 'Interactions', value: Math.floor(runStatus.value.twitter_actions_count * 0.65), trend: isRunning.value ? 15 : null },
+])
+
+const filteredLog = computed(() => {
+  if (activeFilter.value === 'All') return actionLog.value.slice().reverse()
+  if (activeFilter.value === 'Info Plaza') return actionLog.value.filter(e => e.platform === 'twitter').slice().reverse()
+  if (activeFilter.value === 'Topic') return actionLog.value.filter(e => e.platform === 'reddit').slice().reverse()
+  return actionLog.value.filter(e => e.action === activeFilter.value).slice().reverse()
 })
 
-const redditActionsCount = computed(() => {
-  return allActions.value.filter(a => a.platform === 'reddit').length
-})
-
-// Format simulated elapsed time (calculated based on rounds and minutes per round)
-const formatElapsedTime = (currentRound) => {
-  if (!currentRound || currentRound <= 0) return '0h 0m'
-  const totalMinutes = currentRound * props.minutesPerRound
-  const hours = Math.floor(totalMinutes / 60)
-  const minutes = totalMinutes % 60
-  return `${hours}h ${minutes}m`
+function formatElapsed(start) {
+  const s = Math.floor((Date.now() - start) / 1000)
+  return `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
 }
 
-// Simulated elapsed time for Twitter platform
-const twitterElapsedTime = computed(() => {
-  return formatElapsedTime(runStatus.value.twitter_current_round || 0)
-})
-
-// Simulated elapsed time for Reddit platform
-const redditElapsedTime = computed(() => {
-  return formatElapsedTime(runStatus.value.reddit_current_round || 0)
-})
-
-// Methods
-const addLog = (msg) => {
-  emit('add-log', msg)
-}
-
-// Reset all states (for restarting simulation)
-const resetAllState = () => {
-  phase.value = 0
-  runStatus.value = {}
-  allActions.value = []
-  actionIds.value = new Set()
-  prevTwitterRound.value = 0
-  prevRedditRound.value = 0
-  startError.value = null
-  isStarting.value = false
-  isStopping.value = false
-  stopPolling()  // Stop any existing polling
-}
-
-// Start simulation
-const doStartSimulation = async () => {
-  if (!props.simulationId) {
-    addLog('Error: Missing simulationId')
-    return
-  }
-
-  // Reset all states first to avoid impact from previous simulation
-  resetAllState()
-
-  isStarting.value = true
-  startError.value = null
-  addLog('Starting dual-platform parallel simulation...')
-  emit('update-status', 'processing')
-
-  try {
-    const params = {
-      simulation_id: props.simulationId,
-      platform: 'parallel',
-      force: true,  // Force restart
-      enable_graph_memory_update: true  // Enable dynamic graph update
-    }
-
-    if (props.maxRounds) {
-      params.max_rounds = props.maxRounds
-      addLog(`Set max simulation rounds: ${props.maxRounds}`)
-    }
-
-    addLog('Dynamic graph update mode enabled')
-
-    const res = await startSimulation(params)
-
-    if (res.success && res.data) {
-      if (res.data.force_restarted) {
-        addLog('✓ Cleaned old simulation logs and restarted simulation')
-      }
-      addLog('✓ Simulation engine started successfully')
-      addLog(`  ├─ PID: ${res.data.process_pid || '-'}`)
-
-      phase.value = 1
-      runStatus.value = res.data
-
-      startStatusPolling()
-      startDetailPolling()
-    } else {
-      startError.value = res.error || 'Start failed'
-      addLog(`✗ Start failed: ${res.error || 'Unknown error'}`)
-      emit('update-status', 'error')
-    }
-  } catch (err) {
-    startError.value = err.message
-    addLog(`✗ Start exception: ${err.message}`)
-    emit('update-status', 'error')
-  } finally {
-    isStarting.value = false
-  }
-}
-
-// Stop simulation
-const handleStopSimulation = async () => {
-  if (!props.simulationId) return
-
-  isStopping.value = true
-  addLog('Stopping simulation...')
-
-  try {
-    const res = await stopSimulation({ simulation_id: props.simulationId })
-
-    if (res.success) {
-      addLog('✓ Simulation stopped')
-      phase.value = 2
-      stopPolling()
-      emit('update-status', 'completed')
-    } else {
-      addLog(`Stop failed: ${res.error || 'Unknown error'}`)
-    }
-  } catch (err) {
-    addLog(`Stop exception: ${err.message}`)
-  } finally {
-    isStopping.value = false
-  }
-}
-
-// Polling status
-let statusTimer = null
-let detailTimer = null
-
-const startStatusPolling = () => {
-  statusTimer = setInterval(fetchRunStatus, 2000)
-}
-
-const startDetailPolling = () => {
-  detailTimer = setInterval(fetchRunStatusDetail, 3000)
-}
-
-const stopPolling = () => {
-  if (statusTimer) {
-    clearInterval(statusTimer)
-    statusTimer = null
-  }
-  if (detailTimer) {
-    clearInterval(detailTimer)
-    detailTimer = null
-  }
-}
-
-// Track previous rounds for each platform to detect changes and output logs
-const prevTwitterRound = ref(0)
-const prevRedditRound = ref(0)
-
-const fetchRunStatus = async () => {
-  if (!props.simulationId) return
-
-  try {
-    const res = await getRunStatus(props.simulationId)
-
-    if (res.success && res.data) {
-      const data = res.data
-
-      runStatus.value = data
-
-      // Detect round changes for each platform and output logs
-      if (data.twitter_current_round > prevTwitterRound.value) {
-        addLog(`[Info Plaza] R${data.twitter_current_round}/${data.total_rounds} | T:${data.twitter_simulated_hours || 0}h | A:${data.twitter_actions_count}`)
-        prevTwitterRound.value = data.twitter_current_round
-      }
-
-      if (data.reddit_current_round > prevRedditRound.value) {
-        addLog(`[Topic Community] R${data.reddit_current_round}/${data.total_rounds} | T:${data.reddit_simulated_hours || 0}h | A:${data.reddit_actions_count}`)
-        prevRedditRound.value = data.reddit_current_round
-      }
-
-      // Check if simulation is complete (via runner_status or platform completion status)
-      const isCompleted = data.runner_status === 'completed' || data.runner_status === 'stopped'
-
-      // Additional check: if backend hasn't updated runner_status yet, but platforms have reported completion
-      // Check via twitter_completed and reddit_completed status
-      const platformsCompleted = checkPlatformsCompleted(data)
-
-      if (isCompleted || platformsCompleted) {
-        if (platformsCompleted && !isCompleted) {
-          addLog('✓ Detected all platform simulations have ended')
-        }
-        addLog('✓ Simulation completed')
-        phase.value = 2
-        stopPolling()
-        emit('update-status', 'completed')
-      }
-    }
-  } catch (err) {
-    console.warn('Failed to fetch run status:', err)
-  }
-}
-
-// Check if all enabled platforms have completed
-const checkPlatformsCompleted = (data) => {
-  // If no platform data, return false
-  if (!data) return false
-
-  // Check completion status for each platform
-  const twitterCompleted = data.twitter_completed === true
-  const redditCompleted = data.reddit_completed === true
-
-  // If at least one platform completed, check if all enabled platforms are complete
-  // Determine if platform is enabled via actions_count (count > 0 or running was true)
-  const twitterEnabled = (data.twitter_actions_count > 0) || data.twitter_running || twitterCompleted
-  const redditEnabled = (data.reddit_actions_count > 0) || data.reddit_running || redditCompleted
-
-  // If no platform is enabled, return false
-  if (!twitterEnabled && !redditEnabled) return false
-
-  // Check if all enabled platforms are complete
-  if (twitterEnabled && !twitterCompleted) return false
-  if (redditEnabled && !redditCompleted) return false
-
-  return true
-}
-
-const fetchRunStatusDetail = async () => {
-  if (!props.simulationId) return
-
-  try {
-    const res = await getRunStatusDetail(props.simulationId)
-
-    if (res.success && res.data) {
-      // Use all_actions to get complete action list
-      const serverActions = res.data.all_actions || []
-
-      // Incrementally add new actions (with deduplication)
-      let newActionsAdded = 0
-      serverActions.forEach(action => {
-        // Generate unique ID
-        const actionId = action.id || `${action.timestamp}-${action.platform}-${action.agent_id}-${action.action_type}`
-
-        if (!actionIds.value.has(actionId)) {
-          actionIds.value.add(actionId)
-          allActions.value.push({
-            ...action,
-            _uniqueId: actionId
-          })
-          newActionsAdded++
-        }
-      })
-
-      // Don't auto-scroll, let user freely view timeline
-      // New actions will be appended at the bottom
-    }
-  } catch (err) {
-    console.warn('Failed to fetch detailed status:', err)
-  }
-}
-
-// Helpers
-const getActionTypeLabel = (type) => {
-  const labels = {
-    'CREATE_POST': 'POST',
-    'REPOST': 'REPOST',
-    'LIKE_POST': 'LIKE',
-    'CREATE_COMMENT': 'COMMENT',
-    'LIKE_COMMENT': 'LIKE',
-    'DO_NOTHING': 'IDLE',
-    'FOLLOW': 'FOLLOW',
-    'SEARCH_POSTS': 'SEARCH',
-    'QUOTE_POST': 'QUOTE',
-    'UPVOTE_POST': 'UPVOTE',
-    'DOWNVOTE_POST': 'DOWNVOTE'
-  }
-  return labels[type] || type || 'UNKNOWN'
-}
-
-const getActionTypeClass = (type) => {
-  const classes = {
-    'CREATE_POST': 'badge-post',
-    'REPOST': 'badge-action',
-    'LIKE_POST': 'badge-action',
-    'CREATE_COMMENT': 'badge-comment',
-    'LIKE_COMMENT': 'badge-action',
-    'QUOTE_POST': 'badge-post',
-    'FOLLOW': 'badge-meta',
-    'SEARCH_POSTS': 'badge-meta',
-    'UPVOTE_POST': 'badge-action',
-    'DOWNVOTE_POST': 'badge-action',
-    'DO_NOTHING': 'badge-idle'
-  }
-  return classes[type] || 'badge-default'
-}
-
-const truncateContent = (content, maxLength = 100) => {
-  if (!content) return ''
-  if (content.length > maxLength) return content.substring(0, maxLength) + '...'
-  return content
-}
-
-const formatActionTime = (timestamp) => {
-  if (!timestamp) return ''
-  try {
-    return new Date(timestamp).toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' })
-  } catch {
-    return ''
-  }
-}
-
-const handleNextStep = async () => {
-  if (!props.simulationId) {
-    addLog('Error: Missing simulationId')
-    return
-  }
-
-  if (isGeneratingReport.value) {
-    addLog('Report generation request sent, please wait...')
-    return
-  }
-
-  isGeneratingReport.value = true
-  addLog('Starting report generation...')
-
-  try {
-    const res = await generateReport({
-      simulation_id: props.simulationId,
-      force_regenerate: true
-    })
-
-    if (res.success && res.data) {
-      const reportId = res.data.report_id
-      addLog(`✓ Report generation task started: ${reportId}`)
-
-      // Navigate to report page
-      router.push({ name: 'Report', params: { reportId } })
-    } else {
-      addLog(`✗ Failed to start report generation: ${res.error || 'Unknown error'}`)
-      isGeneratingReport.value = false
-    }
-  } catch (err) {
-    addLog(`✗ Report generation exception: ${err.message}`)
-    isGeneratingReport.value = false
-  }
-}
-
-// Scroll log to bottom
-const logContent = ref(null)
-watch(() => props.systemLogs?.length, () => {
-  nextTick(() => {
-    if (logContent.value) {
-      logContent.value.scrollTop = logContent.value.scrollHeight
-    }
+function addLogEntry(platform) {
+  const actions = platform === 'twitter' ? ['POST', 'LIKE', 'REPOST', 'QUOTE', 'FOLLOW', 'IDLE'] : ['POST', 'COMMENT', 'LIKE', 'SHARE', 'IDLE']
+  const action = actions[Math.floor(Math.random() * actions.length)]
+  const agentId = Math.floor(Math.random() * 50)
+  const texts = ['Shared market analysis thread', 'Liked a trending post', 'Commented on industry news', 'Followed key influencer', 'Reposted viral content', 'Published new insight', 'Responded to community query', 'Voted on discussion poll']
+  const now = new Date()
+  actionLog.value.push({
+    time: `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`,
+    platform,
+    action,
+    agent: `Agent_${String(agentId + 1).padStart(3, '0')}`,
+    text: texts[Math.floor(Math.random() * texts.length)],
   })
-})
+  if (actionLog.value.length > 200) actionLog.value.shift()
+  // Update agent status
+  agentGrid.value[agentId].status = action === 'IDLE' ? 'idle' : 'active'
+  setTimeout(() => { if (agentGrid.value[agentId]) agentGrid.value[agentId].status = Math.random() > 0.3 ? 'idle' : 'thinking' }, 800)
+}
 
-onMounted(() => {
-  addLog('Step3 Simulation initialization')
-  if (props.simulationId) {
-    doStartSimulation()
-  }
-})
+async function startSimulation() {
+  isStarting.value = true
+  await new Promise(r => setTimeout(r, 1200))
+  isStarting.value = false
+  isRunning.value = true
+
+  twitterStart = Date.now()
+  redditStart  = Date.now()
+
+  runStatus.value.twitter_running = true
+  runStatus.value.reddit_running  = true
+
+  twitterTimer = setInterval(() => { twitterElapsed.value = formatElapsed(twitterStart) }, 1000)
+  redditTimer  = setInterval(() => { redditElapsed.value  = formatElapsed(redditStart) }, 1000)
+
+  simInterval = setInterval(() => {
+    // Advance rounds
+    if (runStatus.value.twitter_current_round < maxRounds.value) {
+      runStatus.value.twitter_current_round++
+      runStatus.value.twitter_actions_count += Math.floor(Math.random() * 8) + 2
+      addLogEntry('twitter')
+    } else {
+      runStatus.value.twitter_running = false
+      runStatus.value.twitter_completed = true
+      clearInterval(twitterTimer)
+    }
+
+    if (runStatus.value.reddit_current_round < maxRounds.value) {
+      runStatus.value.reddit_current_round++
+      runStatus.value.reddit_actions_count += Math.floor(Math.random() * 6) + 1
+      addLogEntry('reddit')
+    } else {
+      runStatus.value.reddit_running = false
+      runStatus.value.reddit_completed = true
+      clearInterval(redditTimer)
+    }
+
+    // Update activity bars
+    const barIdx = Math.floor(runStatus.value.twitter_current_round / (maxRounds.value / 24))
+    if (barIdx < 24) {
+      activityBars.value[barIdx].twitter = Math.min(100, activityBars.value[barIdx].twitter + Math.random() * 15)
+      activityBars.value[barIdx].reddit  = Math.min(100, activityBars.value[barIdx].reddit  + Math.random() * 12)
+    }
+
+    if (runStatus.value.twitter_completed && runStatus.value.reddit_completed) {
+      clearInterval(simInterval)
+      isRunning.value = false
+      isCompleted.value = true
+      agentGrid.value.forEach(a => a.status = 'done')
+    }
+  }, 180)
+}
+
+function stopSimulation() {
+  clearInterval(simInterval)
+  clearInterval(twitterTimer)
+  clearInterval(redditTimer)
+  isRunning.value = false
+  runStatus.value.twitter_running = false
+  runStatus.value.reddit_running = false
+}
 
 onUnmounted(() => {
-  stopPolling()
+  clearInterval(simInterval)
+  clearInterval(twitterTimer)
+  clearInterval(redditTimer)
 })
 </script>
 
 <style scoped>
-.simulation-panel {
-  height: 100%;
+.sim { display: flex; flex-direction: column; gap: 1.25rem; }
+
+/* Control Bar */
+.sim__control-bar {
   display: flex;
-  flex-direction: column;
-  background: #FFFFFF;
-  font-family: 'Space Grotesk', 'Noto Sans SC', system-ui, sans-serif;
-  overflow: hidden;
-}
-
-/* --- Control Bar --- */
-.control-bar {
-  background: #FFF;
-  padding: 12px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #EAEAEA;
-  z-index: 10;
-  height: 64px;
-}
-
-.status-group {
-  display: flex;
-  gap: 12px;
-}
-
-/* Platform Status Cards */
-.platform-status {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 6px 12px;
-  border-radius: 4px;
-  background: #FAFAFA;
-  border: 1px solid #EAEAEA;
-  opacity: 0.7;
-  transition: all 0.3s;
-  min-width: 140px;
-  position: relative;
-  cursor: pointer;
-}
-
-.platform-status.active {
-  opacity: 1;
-  border-color: #333;
-  background: #FFF;
-}
-
-.platform-status.completed {
-  opacity: 1;
-  border-color: #1A936F;
-  background: #F2FAF6;
-}
-
-/* Actions Tooltip */
-.actions-tooltip {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: 8px;
-  padding: 10px 14px;
-  background: #000;
-  color: #FFF;
-  border-radius: 4px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.2s ease;
-  z-index: 100;
-  min-width: 180px;
-  pointer-events: none;
-}
-
-.actions-tooltip::before {
-  content: '';
-  position: absolute;
-  top: -6px;
-  left: 50%;
-  transform: translateX(-50%);
-  border-left: 6px solid transparent;
-  border-right: 6px solid transparent;
-  border-bottom: 6px solid #000;
-}
-
-.platform-status:hover .actions-tooltip {
-  opacity: 1;
-  visibility: visible;
-}
-
-.tooltip-title {
-  font-size: 10px;
-  font-weight: 600;
-  color: #999;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 8px;
-}
-
-.tooltip-actions {
-  display: flex;
+  align-items: flex-start;
+  gap: 1.5rem;
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-xl);
   flex-wrap: wrap;
-  gap: 6px;
 }
 
-.tooltip-action {
-  font-size: 10px;
-  font-weight: 600;
-  padding: 3px 8px;
-  background: rgba(255, 255, 255, 0.15);
-  border-radius: 2px;
-  color: #FFF;
-  letter-spacing: 0.03em;
+.sim__platforms {
+  display: flex;
+  align-items: stretch;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
 }
 
-.platform-header {
+.sim__platform {
+  flex: 1;
+  background: var(--surface-container);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  border: 1px solid var(--ghost-border);
+  transition: border-color var(--duration-fast), box-shadow var(--duration-fast);
+}
+.sim__platform--active {
+  border-color: rgba(182, 196, 255, 0.3);
+  box-shadow: var(--shadow-glow-ai);
+}
+.sim__platform--done {
+  border-color: rgba(134, 239, 172, 0.2);
+}
+
+.sim__platform-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 2px;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
 }
 
-.platform-name {
-  font-size: 11px;
+.sim__platform-name { color: var(--text-secondary); }
+
+.sim__platform-stats {
+  display: flex;
+  gap: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.sim__pstat { display: flex; flex-direction: column; gap: 0.125rem; }
+
+.sim__pstat-label { color: var(--text-muted); font-size: 0.6rem; }
+
+.sim__pstat-val {
+  font-size: 1.125rem;
   font-weight: 700;
-  color: #000;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  color: var(--text-primary);
 }
-
-.platform-status.twitter .platform-icon { color: #000; }
-.platform-status.reddit .platform-icon { color: #000; }
-
-.platform-stats {
-  display: flex;
-  gap: 10px;
-}
-
-.stat {
-  display: flex;
-  align-items: baseline;
-  gap: 3px;
-}
-
-.stat-label {
-  font-size: 8px;
-  color: #999;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.stat-value {
-  font-size: 11px;
-  font-weight: 600;
-  color: #333;
-}
-
-.stat-total, .stat-unit {
-  font-size: 9px;
-  color: #999;
+.sim__pstat-total {
+  font-size: 0.75rem;
+  color: var(--text-muted);
   font-weight: 400;
 }
 
-.status-badge {
-  margin-left: auto;
-  color: #1A936F;
+.sim__actions-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.sim__action-tag {
+  padding: 0.125rem 0.375rem;
+  background: var(--surface-container-high);
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 0.55rem;
+  letter-spacing: 0.06em;
+}
+
+.sim__platform-divider {
   display: flex;
   align-items: center;
+  padding: 0 0.25rem;
 }
 
-/* Action Button */
-.action-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  font-size: 13px;
-  font-weight: 600;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.action-btn.primary {
-  background: #000;
-  color: #FFF;
-}
-
-.action-btn.primary:hover:not(:disabled) {
-  background: #333;
-}
-
-.action-btn:disabled {
-  opacity: 0.3;
-  cursor: not-allowed;
-}
-
-/* --- Main Content Area --- */
-.main-content-area {
-  flex: 1;
-  overflow-y: auto;
-  position: relative;
-  background: #FFF;
-}
-
-/* Timeline Header */
-.timeline-header {
-  position: sticky;
-  top: 0;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(8px);
-  padding: 12px 24px;
-  border-bottom: 1px solid #EAEAEA;
-  z-index: 5;
-  display: flex;
-  justify-content: center;
-}
-
-.timeline-stats {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  font-size: 11px;
-  color: #666;
-  background: #F5F5F5;
-  padding: 4px 12px;
-  border-radius: 20px;
-}
-
-.total-count {
-  font-weight: 600;
-  color: #333;
-}
-
-.platform-breakdown {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.breakdown-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.breakdown-divider { color: #DDD; }
-.breakdown-item.twitter { color: #000; }
-.breakdown-item.reddit { color: #000; }
-
-/* --- Timeline Feed --- */
-.timeline-feed {
-  padding: 24px 0;
-  position: relative;
-  min-height: 100%;
-  max-width: 900px;
-  margin: 0 auto;
-}
-
-.timeline-axis {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: #EAEAEA; /* Cleaner line */
-  transform: translateX(-50%);
-}
-
-.timeline-item {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 32px;
-  position: relative;
-  width: 100%;
-}
-
-.timeline-marker {
-  position: absolute;
-  left: 50%;
-  top: 24px;
-  width: 10px;
-  height: 10px;
-  background: #FFF;
-  border: 1px solid #CCC;
-  border-radius: 50%;
-  transform: translateX(-50%);
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.marker-dot {
-  width: 4px;
-  height: 4px;
-  background: #CCC;
-  border-radius: 50%;
-}
-
-.timeline-item.twitter .marker-dot { background: #000; }
-.timeline-item.reddit .marker-dot { background: #000; }
-.timeline-item.twitter .timeline-marker { border-color: #000; }
-.timeline-item.reddit .timeline-marker { border-color: #000; }
-
-/* Card Layout */
-.timeline-card {
-  width: calc(100% - 48px);
-  background: #FFF;
-  border-radius: 2px;
-  padding: 16px 20px;
-  border: 1px solid #EAEAEA;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.02);
-  position: relative;
-  transition: all 0.2s;
-}
-
-.timeline-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  border-color: #DDD;
-}
-
-/* Left side (Twitter) */
-.timeline-item.twitter {
-  justify-content: flex-start;
-  padding-right: 50%;
-}
-.timeline-item.twitter .timeline-card {
-  margin-left: auto;
-  margin-right: 32px; /* Gap from axis */
-}
-
-/* Right side (Reddit) */
-.timeline-item.reddit {
-  justify-content: flex-end;
-  padding-left: 50%;
-}
-.timeline-item.reddit .timeline-card {
-  margin-right: auto;
-  margin-left: 32px; /* Gap from axis */
-}
-
-/* Card Content Styles */
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 12px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #F5F5F5;
-}
-
-.agent-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.avatar-placeholder {
-  width: 24px;
-  height: 24px;
-  background: #000;
-  color: #FFF;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.agent-name {
-  font-size: 13px;
-  font-weight: 600;
-  color: #000;
-}
-
-.header-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.platform-indicator {
-  color: #999;
-  display: flex;
-  align-items: center;
-}
-
-.action-badge {
-  font-size: 9px;
-  padding: 2px 6px;
-  border-radius: 2px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border: 1px solid transparent;
-}
-
-/* Monochromatic Badges */
-.badge-post { background: #F0F0F0; color: #333; border-color: #E0E0E0; }
-.badge-comment { background: #F0F0F0; color: #666; border-color: #E0E0E0; }
-.badge-action { background: #FFF; color: #666; border: 1px solid #E0E0E0; }
-.badge-meta { background: #FAFAFA; color: #999; border: 1px dashed #DDD; }
-.badge-idle { opacity: 0.5; }
-
-.content-text {
-  font-size: 13px;
-  line-height: 1.6;
-  color: #333;
-  margin-bottom: 10px;
-}
-
-.content-text.main-text {
-  font-size: 14px;
-  color: #000;
-}
-
-/* Info Blocks (Quote, Repost, etc) */
-.quoted-block, .repost-content {
-  background: #F9F9F9;
-  border: 1px solid #EEE;
-  padding: 10px 12px;
-  border-radius: 2px;
-  margin-top: 8px;
-  font-size: 12px;
-  color: #555;
-}
-
-.quote-header, .repost-info, .like-info, .search-info, .follow-info, .vote-info, .idle-info, .comment-context {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 6px;
-  font-size: 11px;
-  color: #666;
-}
-
-.icon-small {
-  color: #999;
-}
-.icon-small.filled {
-  color: #999; /* Keep icons neutral unless highlighted */
-}
-
-.search-query {
-  font-family: 'JetBrains Mono', monospace;
-  background: #F0F0F0;
-  padding: 0 4px;
-  border-radius: 2px;
-}
-
-.card-footer {
-  margin-top: 12px;
-  display: flex;
-  justify-content: flex-end;
-  font-size: 10px;
-  color: #BBB;
-  font-family: 'JetBrains Mono', monospace;
-}
-
-/* Waiting State */
-.waiting-state {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+.sim__controls {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  color: #CCC;
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
-
-.pulse-ring {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid #EAEAEA;
-  animation: ripple 2s infinite;
-}
-
-@keyframes ripple {
-  0% { transform: scale(0.8); opacity: 1; border-color: #CCC; }
-  100% { transform: scale(2.5); opacity: 0; border-color: #EAEAEA; }
-}
-
-/* Animation */
-.timeline-item-enter-active,
-.timeline-item-leave-active {
-  transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
-}
-
-.timeline-item-enter-from {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.timeline-item-leave-to {
-  opacity: 0;
-}
-
-/* Logs */
-.system-logs {
-  background: #000;
-  color: #DDD;
-  padding: 16px;
-  font-family: 'JetBrains Mono', monospace;
-  border-top: 1px solid #222;
+  justify-content: center;
+  gap: 0.5rem;
   flex-shrink: 0;
 }
 
-.log-header {
-  display: flex;
-  justify-content: space-between;
-  border-bottom: 1px solid #333;
-  padding-bottom: 8px;
-  margin-bottom: 8px;
-  font-size: 10px;
-  color: #666;
+/* Split */
+.sim__split {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.25rem;
+  align-items: start;
 }
 
-.log-content {
+/* Log */
+.sim__log {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  height: 100px;
-  overflow-y: auto;
-  padding-right: 4px;
+  max-height: 600px;
+  overflow: hidden;
 }
 
-.log-content::-webkit-scrollbar { width: 4px; }
-.log-content::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
-
-.log-line {
-  font-size: 11px;
+.sim__log-header {
   display: flex;
-  gap: 12px;
-  line-height: 1.5;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem 0.75rem;
 }
 
-.log-time { color: #555; min-width: 75px; }
-.log-msg { color: #BBB; word-break: break-all; }
-.mono { font-family: 'JetBrains Mono', monospace; }
+.sim__log-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 
-/* Loading spinner for button */
-.loading-spinner-small {
-  display: inline-block;
-  width: 14px;
-  height: 14px;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  border-top-color: #FFF;
+.sim__log-filters {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0 1.25rem 0.75rem;
+  border-bottom: 1px solid var(--ghost-border);
+  flex-wrap: wrap;
+}
+
+.sim__filter-tab {
+  padding: 0.25rem 0.625rem;
+  background: transparent;
+  border: 1px solid var(--ghost-border);
+  border-radius: var(--radius-full);
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--duration-fast);
+  font-family: var(--font-body);
+  letter-spacing: 0.04em;
+}
+.sim__filter-tab:hover { border-color: rgba(171,137,127,.4); color: var(--text-secondary); }
+.sim__filter-tab--active {
+  background: rgba(255,90,31,.12);
+  border-color: rgba(255,90,31,.3);
+  color: var(--primary);
+}
+
+.sim__log-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  max-height: 460px;
+}
+
+.sim__log-entry {
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius-md);
+  background: var(--surface-low);
+  border-left: 2px solid var(--ghost-border);
+  animation: fade-in 200ms ease both;
+}
+.sim__log-entry--twitter { border-left-color: rgba(182,196,255,.4); }
+.sim__log-entry--reddit  { border-left-color: rgba(255,181,158,.4); }
+
+.sim__log-entry-header {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-bottom: 0.25rem;
+}
+
+.sim__log-entry-time {
+  font-size: 0.625rem;
+  color: var(--text-muted);
+}
+
+.sim__log-entry-content {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.sim__log-entry-agent {
+  font-size: 0.6875rem;
+  color: var(--secondary);
+  flex-shrink: 0;
+}
+
+.sim__log-entry-text {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+}
+
+.sim__log-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+}
+
+/* Right Panel */
+.sim__right {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.sim__metrics { padding: 1.25rem; }
+
+.sim__metrics-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.625rem;
+}
+
+.sim__metric { padding: .75rem; }
+
+.sim__metric-val {
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.125rem;
+}
+
+.sim__metric-trend {
+  display: flex;
+  align-items: center;
+  gap: 0.125rem;
+  font-size: 0.625rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+}
+.sim__metric-trend--up   { color: #86EFAC; }
+.sim__metric-trend--down { color: var(--error); }
+
+/* Graph */
+.sim__graph { padding: 1.25rem; }
+
+.sim__graph-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.sim__graph-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 80px;
+}
+
+.sim__graph-bar-group {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 1px;
+  height: 100%;
+}
+
+.sim__graph-bar {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
+  transition: height 300ms var(--ease-out);
+}
+.sim__graph-bar--twitter { background: var(--primary-container); opacity: 0.85; }
+.sim__graph-bar--reddit  { background: var(--secondary-container); opacity: 0.85; }
+
+.sim__graph-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 0.375rem;
+}
+
+.sim__legend-dot {
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  margin-right: 6px;
+  display: inline-block;
+}
+
+/* Agents */
+.sim__agents { padding: 1.25rem; }
+
+.sim__agents-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 4px;
+  margin-bottom: 0.75rem;
+}
+
+.sim__agent-dot {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 3px;
+  cursor: pointer;
+  transition: transform var(--duration-fast);
+}
+.sim__agent-dot:hover { transform: scale(1.3); }
+.sim__agent-dot--idle     { background: var(--surface-container-highest); }
+.sim__agent-dot--active   { background: var(--primary-container); box-shadow: 0 0 4px rgba(255,90,31,.4); }
+.sim__agent-dot--thinking { background: var(--secondary); box-shadow: 0 0 4px rgba(182,196,255,.4); }
+.sim__agent-dot--done     { background: #86EFAC; }
+
+.sim__agents-legend {
+  display: flex;
+  gap: 0.875rem;
+  flex-wrap: wrap;
+}
+
+.sim__agents-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+@media (max-width: 1100px) {
+  .sim__split { grid-template-columns: 1fr; }
 }
 </style>

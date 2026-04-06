@@ -1,4 +1,4 @@
-# MiroFish-Offline Roadmap
+# Predly Roadmap
 
 ## Current State (v0.2.0)
 
@@ -83,4 +83,4 @@ This project is AGPL-3.0 licensed. Contributions welcome — especially around:
 - Simulation quality improvements
 - Documentation and tutorials in English
 
-See [GitHub Issues](https://github.com/nikmcfly/MiroFish-Offline/issues) for current tasks.
+See [GitHub Issues](https://github.com/nikmcfly/Predly/issues) for current tasks.

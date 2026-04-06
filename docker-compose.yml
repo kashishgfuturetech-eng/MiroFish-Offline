@@ -2,8 +2,8 @@ services:
   mirofish:
     build: .
     # Or use pre-built image (when available):
-    # image: ghcr.io/nikmcfly/mirofish-offline:latest
-    container_name: mirofish-offline
+    # image: ghcr.io/nikmcfly/Predly:latest
+    container_name: Predly
     env_file:
       - .env
     ports:

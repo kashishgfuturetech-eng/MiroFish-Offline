@@ -347,7 +347,7 @@ Based on the above content, design entity types and relationship types suitable 
     def generate_python_code(self, ontology: Dict[str, Any]) -> str:
         """
         [DEPRECATED] Convert ontology definition to Zep-format Pydantic code.
-        Not used in MiroFish-Offline (ontology stored as JSON in Neo4j).
+        Not used in Predly (ontology stored as JSON in Neo4j).
         Kept for reference only.
         """
         code_lines = [

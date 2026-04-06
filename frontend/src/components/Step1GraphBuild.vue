@@ -1,698 +1,568 @@
 <template>
-  <div class="workbench-panel">
-    <div class="scroll-container">
-      <!-- Step 01: Ontology -->
-      <div class="step-card" :class="{ 'active': currentPhase === 0, 'completed': currentPhase > 0 }">
-        <div class="card-header">
-          <div class="step-info">
-            <span class="step-num">01</span>
-            <span class="step-title">Ontology Generation</span>
-          </div>
-          <div class="step-status">
-            <span v-if="currentPhase > 0" class="badge success">Completed</span>
-            <span v-else-if="currentPhase === 0" class="badge processing">Generating</span>
-            <span v-else class="badge pending">Waiting</span>
-          </div>
-        </div>
-        
-        <div class="card-content">
-          <p class="api-note">POST /api/graph/ontology/generate</p>
-          <p class="description">
-            LLM analyzes document content and simulation requirements, extracts reality seeds, and automatically generates appropriate ontology structures
-          </p>
-
-          <!-- Loading / Progress -->
-          <div v-if="currentPhase === 0 && ontologyProgress" class="progress-section">
-            <div class="spinner-sm"></div>
-            <span>{{ ontologyProgress.message || 'Analyzing documents...' }}</span>
-          </div>
-
-          <!-- Detail Overlay -->
-          <div v-if="selectedOntologyItem" class="ontology-detail-overlay">
-            <div class="detail-header">
-               <div class="detail-title-group">
-                  <span class="detail-type-badge">{{ selectedOntologyItem.itemType === 'entity' ? 'ENTITY' : 'RELATION' }}</span>
-                  <span class="detail-name">{{ selectedOntologyItem.name }}</span>
-               </div>
-               <button class="close-btn" @click="selectedOntologyItem = null">×</button>
-            </div>
-            <div class="detail-body">
-               <div class="detail-desc">{{ selectedOntologyItem.description }}</div>
-               
-               <!-- Attributes -->
-               <div class="detail-section" v-if="selectedOntologyItem.attributes?.length">
-                  <span class="section-label">ATTRIBUTES</span>
-                  <div class="attr-list">
-                     <div v-for="attr in selectedOntologyItem.attributes" :key="attr.name" class="attr-item">
-                        <span class="attr-name">{{ attr.name }}</span>
-                        <span class="attr-type">({{ attr.type }})</span>
-                        <span class="attr-desc">{{ attr.description }}</span>
-                     </div>
-                  </div>
-               </div>
-
-               <!-- Examples (Entity) -->
-               <div class="detail-section" v-if="selectedOntologyItem.examples?.length">
-                  <span class="section-label">EXAMPLES</span>
-                  <div class="example-list">
-                     <span v-for="ex in selectedOntologyItem.examples" :key="ex" class="example-tag">{{ ex }}</span>
-                  </div>
-               </div>
-
-               <!-- Source/Target (Relation) -->
-               <div class="detail-section" v-if="selectedOntologyItem.source_targets?.length">
-                  <span class="section-label">CONNECTIONS</span>
-                  <div class="conn-list">
-                     <div v-for="(conn, idx) in selectedOntologyItem.source_targets" :key="idx" class="conn-item">
-                        <span class="conn-node">{{ conn.source }}</span>
-                        <span class="conn-arrow">→</span>
-                        <span class="conn-node">{{ conn.target }}</span>
-                     </div>
-                  </div>
-               </div>
-            </div>
-          </div>
-
-          <!-- Generated Entity Tags -->
-          <div v-if="projectData?.ontology?.entity_types" class="tags-container" :class="{ 'dimmed': selectedOntologyItem }">
-            <span class="tag-label">GENERATED ENTITY TYPES</span>
-            <div class="tags-list">
-              <span 
-                v-for="entity in projectData.ontology.entity_types" 
-                :key="entity.name" 
-                class="entity-tag clickable"
-                @click="selectOntologyItem(entity, 'entity')"
-              >
-                {{ entity.name }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Generated Relation Tags -->
-          <div v-if="projectData?.ontology?.edge_types" class="tags-container" :class="{ 'dimmed': selectedOntologyItem }">
-            <span class="tag-label">GENERATED RELATION TYPES</span>
-            <div class="tags-list">
-              <span 
-                v-for="rel in projectData.ontology.edge_types" 
-                :key="rel.name" 
-                class="entity-tag clickable"
-                @click="selectOntologyItem(rel, 'relation')"
-              >
-                {{ rel.name }}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 02: Graph Build -->
-      <div class="step-card" :class="{ 'active': currentPhase === 1, 'completed': currentPhase > 1 }">
-        <div class="card-header">
-          <div class="step-info">
-            <span class="step-num">02</span>
-            <span class="step-title">GraphRAG Build</span>
-          </div>
-          <div class="step-status">
-            <span v-if="currentPhase > 1" class="badge success">Completed</span>
-            <span v-else-if="currentPhase === 1" class="badge processing">{{ buildProgress?.progress || 0 }}%</span>
-            <span v-else class="badge pending">Waiting</span>
-          </div>
-        </div>
-
-        <div class="card-content">
-          <p class="api-note">POST /api/graph/build</p>
-          <p class="description">
-            Based on the generated ontology, automatically chunk documents and invoke Neo4j to build knowledge graphs, extract entities and relationships, and form temporal memory and community summaries
-          </p>
-          
-          <!-- Stats Cards -->
-          <div class="stats-grid">
-            <div class="stat-card">
-              <span class="stat-value">{{ graphStats.nodes }}</span>
-              <span class="stat-label">Entity Nodes</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-value">{{ graphStats.edges }}</span>
-              <span class="stat-label">Relation Edges</span>
-            </div>
-            <div class="stat-card">
-              <span class="stat-value">{{ graphStats.types }}</span>
-              <span class="stat-label">SCHEMA Types</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Step 03: Complete -->
-      <div class="step-card" :class="{ 'active': currentPhase === 2, 'completed': currentPhase >= 2 }">
-        <div class="card-header">
-          <div class="step-info">
-            <span class="step-num">03</span>
-            <span class="step-title">Build Complete</span>
-          </div>
-          <div class="step-status">
-            <span v-if="currentPhase >= 2" class="badge accent">In Progress</span>
-          </div>
-        </div>
-        
-        <div class="card-content">
-          <p class="api-note">POST /api/simulation/create</p>
-          <p class="description">Graph build is complete. Please proceed to the next step to set up the simulation environment</p>
-          <button 
-            class="action-btn" 
-            :disabled="currentPhase < 2 || creatingSimulation"
-            @click="handleEnterEnvSetup"
-          >
-            <span v-if="creatingSimulation" class="spinner-sm"></span>
-            {{ creatingSimulation ? 'Creating...' : 'Enter Environment Setup ➝' }}
-          </button>
-        </div>
+  <div class="graph-build">
+    <!-- Metrics Row -->
+    <div class="graph-build__metrics">
+      <div class="graph-build__metric card" v-for="m in metrics" :key="m.label">
+        <div class="orb orb-blue" style="width:80px;height:80px;top:-20px;right:-20px;opacity:0.3;"></div>
+        <span class="label-sm" style="color:var(--text-muted)">{{ m.label }}</span>
+        <div class="graph-build__metric-val font-headline">{{ m.value }}</div>
+        <div class="graph-build__metric-sub">{{ m.sub }}</div>
       </div>
     </div>
 
-    <!-- Bottom Info / Logs -->
-    <div class="system-logs">
-      <div class="log-header">
-        <span class="log-title">SYSTEM DASHBOARD</span>
-        <span class="log-id">{{ projectData?.project_id || 'NO_PROJECT' }}</span>
-      </div>
-      <div class="log-content" ref="logContent">
-        <div class="log-line" v-for="(log, idx) in systemLogs" :key="idx">
-          <span class="log-time">{{ log.time }}</span>
-          <span class="log-msg">{{ log.msg }}</span>
+    <!-- ── Phase 01: Ontology Generation ── -->
+    <div class="graph-build__phase card" :class="phaseClass(0)">
+      <div class="graph-build__phase-header">
+        <div class="graph-build__phase-meta">
+          <span class="chip chip-blue label-sm">POST /api/graph/ontology/generate</span>
         </div>
+        <div class="graph-build__phase-title-row">
+          <span class="graph-build__phase-num font-mono">01</span>
+          <h2 class="headline-md" style="color:var(--text-primary)">Ontology Generation</h2>
+        </div>
+        <p class="graph-build__phase-desc">
+          LLM analyzes document content and simulation requirements, extracts reality seeds,
+          and automatically generates appropriate ontology structures.
+        </p>
+        <!-- Status -->
+        <div class="graph-build__phase-status">
+          <span v-if="currentPhase > 0" class="chip chip-green">
+            <span class="material-symbols-outlined" style="font-size:12px">check</span> Completed
+          </span>
+          <div v-else-if="currentPhase === 0 && isProcessing" class="ai-chip">
+            <span class="ai-chip-dot"></span>
+            <span class="label-sm" style="color:var(--secondary)">Generating ontology…</span>
+          </div>
+          <span v-else class="chip chip-muted">Waiting</span>
+        </div>
+      </div>
+
+      <!-- Detail overlay -->
+      <transition name="overlay">
+        <div v-if="selectedItem" class="graph-build__overlay glass-elevated">
+          <div class="graph-build__overlay-header">
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <span class="chip" :class="selectedItem.itemType === 'entity' ? 'chip-orange' : 'chip-blue'">
+                {{ selectedItem.itemType === 'entity' ? 'ENTITY' : 'RELATION' }}
+              </span>
+              <span class="headline-md" style="color:var(--text-primary)">{{ selectedItem.name }}</span>
+            </div>
+            <button class="btn-ghost" @click="selectedItem = null">
+              <span class="material-symbols-outlined">close</span>
+            </button>
+          </div>
+          <p class="graph-build__overlay-desc">{{ selectedItem.description }}</p>
+
+          <div v-if="selectedItem.attributes?.length" class="graph-build__overlay-section">
+            <span class="label-sm" style="color:var(--text-muted)">Attributes</span>
+            <div class="graph-build__attr-list">
+              <div v-for="attr in selectedItem.attributes" :key="attr.name" class="graph-build__attr-item">
+                <span class="graph-build__attr-name font-mono">{{ attr.name }}</span>
+                <span class="chip chip-muted" style="font-size:.6rem">{{ attr.type }}</span>
+                <span class="graph-build__attr-desc">{{ attr.description }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="selectedItem.examples?.length" class="graph-build__overlay-section">
+            <span class="label-sm" style="color:var(--text-muted)">Examples</span>
+            <div style="display:flex;flex-wrap:wrap;gap:.375rem">
+              <span v-for="ex in selectedItem.examples" :key="ex" class="chip chip-orange">{{ ex }}</span>
+            </div>
+          </div>
+
+          <div v-if="selectedItem.source_targets?.length" class="graph-build__overlay-section">
+            <span class="label-sm" style="color:var(--text-muted)">Connections</span>
+            <div class="graph-build__conn-list">
+              <div v-for="(c, i) in selectedItem.source_targets" :key="i" class="graph-build__conn-item">
+                <span class="chip chip-muted">{{ c.source }}</span>
+                <span class="material-symbols-outlined" style="font-size:16px;color:var(--primary)">arrow_forward</span>
+                <span class="chip chip-muted">{{ c.target }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </transition>
+
+      <!-- Entity Types -->
+      <div v-if="projectData?.ontology?.entity_types" class="graph-build__tags-section" :class="{'graph-build__tags-section--dimmed': selectedItem}">
+        <span class="label-sm" style="color:var(--text-muted)">Generated Entity Types</span>
+        <div class="graph-build__tag-list">
+          <button
+            v-for="entity in projectData.ontology.entity_types"
+            :key="entity.name"
+            class="graph-build__tag"
+            :class="{'graph-build__tag--selected': selectedItem?.name === entity.name}"
+            @click="selectItem(entity, 'entity')"
+          >
+            <span class="material-symbols-outlined" style="font-size:14px">category</span>
+            {{ entity.name }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Relation Types -->
+      <div v-if="projectData?.ontology?.relation_types" class="graph-build__tags-section" :class="{'graph-build__tags-section--dimmed': selectedItem}">
+        <span class="label-sm" style="color:var(--text-muted)">Generated Relation Types</span>
+        <div class="graph-build__tag-list">
+          <button
+            v-for="rel in projectData.ontology.relation_types"
+            :key="rel.name"
+            class="graph-build__tag graph-build__tag--relation"
+            :class="{'graph-build__tag--selected': selectedItem?.name === rel.name}"
+            @click="selectItem(rel, 'relation')"
+          >
+            <span class="material-symbols-outlined" style="font-size:14px">share</span>
+            {{ rel.name }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Demo State / CTA -->
+      <div v-if="currentPhase === 0 && !isProcessing" class="graph-build__cta">
+        <button class="btn-primary" @click="startOntology">
+          <span class="material-symbols-outlined" style="font-size:18px">auto_awesome</span>
+          Generate Ontology
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Phase 02: Entity Extraction ── -->
+    <div class="graph-build__phase card" :class="phaseClass(1)">
+      <div class="graph-build__phase-header">
+        <div class="graph-build__phase-meta">
+          <span class="chip chip-blue label-sm">POST /api/graph/entities/extract</span>
+        </div>
+        <div class="graph-build__phase-title-row">
+          <span class="graph-build__phase-num font-mono">02</span>
+          <h2 class="headline-md" style="color:var(--text-primary)">Entity Extraction</h2>
+        </div>
+        <p class="graph-build__phase-desc">
+          Using the generated ontology as schema, extract all named entities and their
+          attributes from the source documents.
+        </p>
+        <div class="graph-build__phase-status">
+          <span v-if="currentPhase > 1" class="chip chip-green">
+            <span class="material-symbols-outlined" style="font-size:12px">check</span> Completed
+          </span>
+          <div v-else-if="currentPhase === 1 && isProcessing" class="ai-chip">
+            <span class="ai-chip-dot"></span>
+            <span class="label-sm" style="color:var(--secondary)">Extracting entities…</span>
+          </div>
+          <span v-else class="chip chip-muted">{{ currentPhase < 1 ? 'Waiting' : 'Ready' }}</span>
+        </div>
+      </div>
+
+      <div v-if="currentPhase >= 1" class="graph-build__stats-grid">
+        <div class="card-nested" v-for="s in entityStats" :key="s.label">
+          <div class="graph-build__stat-val font-headline">{{ s.value }}</div>
+          <div class="label-sm" style="color:var(--text-muted)">{{ s.label }}</div>
+        </div>
+      </div>
+
+      <div v-if="currentPhase === 1 && !isProcessing" class="graph-build__cta">
+        <button class="btn-primary" @click="startExtraction">
+          <span class="material-symbols-outlined" style="font-size:18px">search</span>
+          Extract Entities
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Phase 03: Graph Storage ── -->
+    <div class="graph-build__phase card" :class="phaseClass(2)">
+      <div class="graph-build__phase-header">
+        <div class="graph-build__phase-meta">
+          <span class="chip chip-blue label-sm">POST /api/graph/store</span>
+        </div>
+        <div class="graph-build__phase-title-row">
+          <span class="graph-build__phase-num font-mono">03</span>
+          <h2 class="headline-md" style="color:var(--text-primary)">Graph Storage</h2>
+        </div>
+        <p class="graph-build__phase-desc">
+          Store the knowledge graph in Neo4j. Build vector embeddings for semantic
+          retrieval during agent reasoning.
+        </p>
+        <div class="graph-build__phase-status">
+          <span v-if="currentPhase > 2" class="chip chip-green">
+            <span class="material-symbols-outlined" style="font-size:12px">check</span> Completed
+          </span>
+          <div v-else-if="currentPhase === 2 && isProcessing" class="ai-chip">
+            <span class="ai-chip-dot"></span>
+            <span class="label-sm" style="color:var(--secondary)">Writing to Neo4j…</span>
+          </div>
+          <span v-else class="chip chip-muted">{{ currentPhase < 2 ? 'Waiting' : 'Ready' }}</span>
+        </div>
+      </div>
+
+      <div v-if="currentPhase >= 2 && graphStorageInfo" class="graph-build__info-card card-nested">
+        <div class="graph-build__info-row" v-for="row in graphStorageInfo" :key="row.label">
+          <span class="graph-build__info-label label-sm">{{ row.label }}</span>
+          <span class="graph-build__info-val font-mono">{{ row.value }}</span>
+        </div>
+      </div>
+
+      <div v-if="currentPhase === 2 && !isProcessing" class="graph-build__cta">
+        <button class="btn-primary" @click="startStorage">
+          <span class="material-symbols-outlined" style="font-size:18px">storage</span>
+          Store Graph
+        </button>
+      </div>
+
+      <!-- Final CTA -->
+      <div v-if="currentPhase > 2" class="graph-build__complete">
+        <div class="graph-build__complete-badge chip chip-green">
+          <span class="material-symbols-outlined" style="font-size:14px">check_circle</span>
+          Graph Build Complete
+        </div>
+        <button class="btn-primary" @click="proceedToEnv">
+          Proceed to Env Setup
+          <span class="material-symbols-outlined" style="font-size:18px">arrow_forward</span>
+        </button>
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { computed, ref, watch, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
-import { createSimulation } from '../api/simulation'
+import { ref, computed } from 'vue'
 
-const router = useRouter()
+const props = defineProps({ projectData: Object })
+const emit = defineEmits(['completed'])
 
-const props = defineProps({
-  currentPhase: { type: Number, default: 0 },
-  projectData: Object,
-  ontologyProgress: Object,
-  buildProgress: Object,
-  graphData: Object,
-  systemLogs: { type: Array, default: () => [] }
-})
+const currentPhase = ref(0)
+const isProcessing = ref(false)
+const selectedItem = ref(null)
 
-defineEmits(['next-step'])
+const metrics = ref([
+  { label: 'Documents', value: '3', sub: 'Reality seeds loaded' },
+  { label: 'Tokens Processed', value: '—', sub: 'Context window usage' },
+  { label: 'Graph ID', value: 'Pending', sub: 'Neo4j node ID' },
+])
 
-const selectedOntologyItem = ref(null)
-const logContent = ref(null)
-const creatingSimulation = ref(false)
+const entityStats = ref([
+  { label: 'Entities Found', value: '—' },
+  { label: 'Relations Found', value: '—' },
+  { label: 'Properties', value: '—' },
+])
 
-// Enter environment setup - create simulation and navigate
-const handleEnterEnvSetup = async () => {
-  if (!props.projectData?.project_id || !props.projectData?.graph_id) {
-    console.error('Missing project or graph information')
-    return
-  }
-  
-  creatingSimulation.value = true
-  
-  try {
-    const res = await createSimulation({
-      project_id: props.projectData.project_id,
-      graph_id: props.projectData.graph_id,
-      enable_twitter: true,
-      enable_reddit: true
-    })
-    
-    if (res.success && res.data?.simulation_id) {
-      // Navigate to simulation page
-      router.push({
-        name: 'Simulation',
-        params: { simulationId: res.data.simulation_id }
-      })
-    } else {
-      console.error('Failed to create simulation:', res.error)
-      alert('Failed to create simulation: ' + (res.error || 'Unknown error'))
-    }
-  } catch (err) {
-    console.error('Simulation creation exception:', err)
-    alert('Simulation creation exception: ' + err.message)
-  } finally {
-    creatingSimulation.value = false
-  }
+const graphStorageInfo = ref(null)
+
+function phaseClass(phase) {
+  if (currentPhase.value > phase) return 'graph-build__phase--completed'
+  if (currentPhase.value === phase) return 'graph-build__phase--active'
+  return 'graph-build__phase--locked'
 }
 
-const selectOntologyItem = (item, type) => {
-  selectedOntologyItem.value = { ...item, itemType: type }
+function selectItem(item, type) {
+  selectedItem.value = selectedItem.value?.name === item.name ? null : { ...item, itemType: type }
 }
 
-const graphStats = computed(() => {
-  const nodes = props.graphData?.node_count || props.graphData?.nodes?.length || 0
-  const edges = props.graphData?.edge_count || props.graphData?.edges?.length || 0
-  const types = props.projectData?.ontology?.entity_types?.length || 0
-  return { nodes, edges, types }
-})
-
-const formatDate = (dateStr) => {
-  if (!dateStr) return '--:--:--'
-  const d = new Date(dateStr)
-  return d.toLocaleTimeString('en-US', { hour12: false }) + '.' + d.getMilliseconds()
+async function simulate(delay) {
+  isProcessing.value = true
+  await new Promise(r => setTimeout(r, delay))
+  isProcessing.value = false
 }
 
-// Auto-scroll logs section
-watch(() => props.systemLogs.length, () => {
-  nextTick(() => {
-    if (logContent.value) {
-      logContent.value.scrollTop = logContent.value.scrollHeight
-    }
-  })
-})
+async function startOntology() {
+  await simulate(2000)
+  currentPhase.value = 1
+  metrics.value[1].value = '12.4K'
+}
+
+async function startExtraction() {
+  await simulate(1800)
+  currentPhase.value = 2
+  entityStats.value = [
+    { label: 'Entities Found', value: '247' },
+    { label: 'Relations Found', value: '89' },
+    { label: 'Properties', value: '1,203' },
+  ]
+}
+
+async function startStorage() {
+  await simulate(1500)
+  currentPhase.value = 3
+  metrics.value[2].value = 'GRF-8A2F1'
+  graphStorageInfo.value = [
+    { label: 'Graph ID', value: 'GRF-8A2F1' },
+    { label: 'Node Count', value: '247' },
+    { label: 'Edge Count', value: '89' },
+    { label: 'Vector Dims', value: '1536' },
+    { label: 'Storage', value: 'Neo4j (local)' },
+  ]
+}
+
+function proceedToEnv() {
+  emit('completed', { graph_id: 'GRF-8A2F1', ontology: { entity_types: [], relation_types: [] } })
+}
 </script>
 
 <style scoped>
-.workbench-panel {
-  height: 100%;
-  background-color: #FAFAFA;
+.graph-build {
   display: flex;
   flex-direction: column;
-  position: relative;
+  gap: 1.5rem;
+}
+
+.graph-build__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.graph-build__metric {
+  padding: 1.25rem 1.5rem;
   overflow: hidden;
 }
 
-.scroll-container {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px;
+.graph-build__metric-val {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin: 0.25rem 0 0.125rem;
+}
+
+.graph-build__metric-sub {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+}
+
+/* Phase Card */
+.graph-build__phase {
+  padding: 1.75rem;
+  transition: opacity var(--duration-normal);
+}
+
+.graph-build__phase--locked {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.graph-build__phase--active {
+  border-color: rgba(255, 181, 158, 0.25);
+  box-shadow: var(--shadow-glow-primary);
+}
+
+.graph-build__phase--completed {
+  border-color: rgba(134, 239, 172, 0.15);
+}
+
+.graph-build__phase-header {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 0.625rem;
+  margin-bottom: 1.25rem;
 }
 
-.step-card {
-  background: #FFF;
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-  border: 1px solid #EAEAEA;
-  transition: all 0.3s ease;
-  position: relative; /* For absolute overlay */
-}
-
-.step-card.active {
-  border-color: #FF5722;
-  box-shadow: 0 4px 12px rgba(255, 87, 34, 0.08);
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.step-info {
+.graph-build__phase-meta {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.5rem;
 }
 
-.step-num {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 20px;
+.graph-build__phase-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.graph-build__phase-num {
+  font-size: 2rem;
   font-weight: 700;
-  color: #E0E0E0;
+  color: var(--text-muted);
+  opacity: 0.4;
+  line-height: 1;
 }
 
-.step-card.active .step-num,
-.step-card.completed .step-num {
-  color: #000;
+.graph-build__phase-desc {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1.7;
+  max-width: 640px;
 }
 
-.step-title {
-  font-weight: 600;
-  font-size: 14px;
-  letter-spacing: 0.5px;
+.graph-build__phase-status {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
-.badge {
-  font-size: 10px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-weight: 600;
-  text-transform: uppercase;
+/* Overlay */
+.graph-build__overlay {
+  border-radius: var(--radius-xl);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.badge.success { background: #E8F5E9; color: #2E7D32; }
-.badge.processing { background: #FF5722; color: #FFF; }
-.badge.accent { background: #FF5722; color: #FFF; }
-.badge.pending { background: #F5F5F5; color: #999; }
-
-.api-note {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  color: #999;
-  margin-bottom: 8px;
+.graph-build__overlay-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-.description {
-  font-size: 12px;
-  color: #666;
-  line-height: 1.5;
-  margin-bottom: 16px;
+.graph-build__overlay-desc {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.7;
 }
 
-/* Step 01 Tags */
-.tags-container {
-  margin-top: 12px;
-  transition: opacity 0.3s;
+.graph-build__overlay-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
-.tags-container.dimmed {
-    opacity: 0.3;
-    pointer-events: none;
+.graph-build__attr-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
 }
 
-.tag-label {
-  display: block;
-  font-size: 10px;
-  color: #AAA;
-  margin-bottom: 8px;
-  font-weight: 600;
+.graph-build__attr-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--surface-container-high);
+  border-radius: var(--radius-md);
 }
 
-.tags-list {
+.graph-build__attr-name {
+  font-size: 0.8125rem;
+  color: var(--primary);
+  min-width: 100px;
+}
+
+.graph-build__attr-desc {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  flex: 1;
+}
+
+.graph-build__conn-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.graph-build__conn-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+/* Tags */
+.graph-build__tags-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin-bottom: 0.75rem;
+  transition: opacity var(--duration-normal);
+}
+
+.graph-build__tags-section--dimmed { opacity: 0.35; }
+
+.graph-build__tag-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 0.375rem;
 }
 
-.entity-tag {
-  background: #F5F5F5;
-  border: 1px solid #EEE;
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 11px;
-  color: #333;
-  font-family: 'JetBrains Mono', monospace;
-  transition: all 0.2s;
-}
-
-.entity-tag.clickable {
-    cursor: pointer;
-}
-
-.entity-tag.clickable:hover {
-    background: #E0E0E0;
-    border-color: #CCC;
-}
-
-/* Ontology Detail Overlay */
-.ontology-detail-overlay {
-    position: absolute;
-    top: 60px; /* Below header roughly */
-    left: 20px;
-    right: 20px;
-    bottom: 20px;
-    background: rgba(255, 255, 255, 0.98);
-    backdrop-filter: blur(4px);
-    z-index: 10;
-    border: 1px solid #EAEAEA;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-    border-radius: 6px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    animation: fadeIn 0.2s ease-out;
-}
-
-@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-
-.detail-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 12px 16px;
-    border-bottom: 1px solid #EAEAEA;
-    background: #FAFAFA;
-}
-
-.detail-title-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.detail-type-badge {
-    font-size: 9px;
-    font-weight: 700;
-    color: #FFF;
-    background: #000;
-    padding: 2px 6px;
-    border-radius: 2px;
-    text-transform: uppercase;
-}
-
-.detail-name {
-    font-size: 14px;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
-}
-
-.close-btn {
-    background: none;
-    border: none;
-    font-size: 18px;
-    color: #999;
-    cursor: pointer;
-    line-height: 1;
-}
-
-.close-btn:hover {
-    color: #333;
-}
-
-.detail-body {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-}
-
-.detail-desc {
-    font-size: 12px;
-    color: #444;
-    line-height: 1.5;
-    margin-bottom: 16px;
-    padding-bottom: 12px;
-    border-bottom: 1px dashed #EAEAEA;
-}
-
-.detail-section {
-    margin-bottom: 16px;
-}
-
-.section-label {
-    display: block;
-    font-size: 10px;
-    font-weight: 600;
-    color: #AAA;
-    margin-bottom: 8px;
-}
-
-.attr-list, .conn-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.attr-item {
-    font-size: 11px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    align-items: baseline;
-    padding: 4px;
-    background: #F9F9F9;
-    border-radius: 4px;
-}
-
-.attr-name {
-    font-family: 'JetBrains Mono', monospace;
-    font-weight: 600;
-    color: #000;
-}
-
-.attr-type {
-    color: #999;
-    font-size: 10px;
-}
-
-.attr-desc {
-    color: #555;
-    flex: 1;
-    min-width: 150px;
-}
-
-.example-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-
-.example-tag {
-    font-size: 11px;
-    background: #FFF;
-    border: 1px solid #E0E0E0;
-    padding: 3px 8px;
-    border-radius: 12px;
-    color: #555;
-}
-
-.conn-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 11px;
-    padding: 6px;
-    background: #F5F5F5;
-    border-radius: 4px;
-    font-family: 'JetBrains Mono', monospace;
-}
-
-.conn-node {
-    font-weight: 600;
-    color: #333;
-}
-
-.conn-arrow {
-    color: #BBB;
-}
-
-/* Step 02 Stats */
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 12px;
-  background: #F9F9F9;
-  padding: 16px;
-  border-radius: 6px;
-}
-
-.stat-card {
-  text-align: center;
-}
-
-.stat-value {
-  display: block;
-  font-size: 20px;
-  font-weight: 700;
-  color: #000;
-  font-family: 'JetBrains Mono', monospace;
-}
-
-.stat-label {
-  font-size: 9px;
-  color: #999;
-  text-transform: uppercase;
-  margin-top: 4px;
-  display: block;
-}
-
-/* Step 03 Button */
-.action-btn {
-  width: 100%;
-  background: #000;
-  color: #FFF;
-  border: none;
-  padding: 14px;
-  border-radius: 4px;
-  font-size: 12px;
+.graph-build__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  background: rgba(255, 90, 31, 0.1);
+  color: var(--primary);
+  border: 1px solid rgba(255, 90, 31, 0.2);
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
-  transition: opacity 0.2s;
+  transition: all var(--duration-fast);
+  font-family: var(--font-body);
+}
+.graph-build__tag:hover {
+  background: rgba(255, 90, 31, 0.2);
+  border-color: rgba(255, 90, 31, 0.4);
+}
+.graph-build__tag--selected {
+  background: rgba(255, 90, 31, 0.25);
+  border-color: var(--primary-container);
+  box-shadow: 0 0 10px rgba(255, 90, 31, 0.2);
 }
 
-.action-btn:hover:not(:disabled) {
-  opacity: 0.8;
+.graph-build__tag--relation {
+  background: rgba(14, 63, 174, 0.15);
+  color: var(--secondary);
+  border-color: rgba(182, 196, 255, 0.2);
+}
+.graph-build__tag--relation:hover {
+  background: rgba(14, 63, 174, 0.25);
+  border-color: rgba(182, 196, 255, 0.4);
+}
+.graph-build__tag--relation.graph-build__tag--selected {
+  background: rgba(14, 63, 174, 0.3);
+  border-color: var(--secondary);
+  box-shadow: var(--shadow-glow-ai);
 }
 
-.action-btn:disabled {
-  background: #CCC;
-  cursor: not-allowed;
+/* Stats Grid */
+.graph-build__stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
 }
 
-.progress-section {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 12px;
-  color: #FF5722;
-  margin-bottom: 12px;
+.graph-build__stat-val {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 0.25rem;
 }
 
-.spinner-sm {
-  width: 14px;
-  height: 14px;
-  border: 2px solid #FFCCBC;
-  border-top-color: #FF5722;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
+/* Info Card */
+.graph-build__info-card {
+  margin-bottom: 1.25rem;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* System Logs */
-.system-logs {
-  background: #000;
-  color: #DDD;
-  padding: 16px;
-  font-family: 'JetBrains Mono', monospace;
-  border-top: 1px solid #222;
-  flex-shrink: 0;
-}
-
-.log-header {
+.graph-build__info-row {
   display: flex;
   justify-content: space-between;
-  border-bottom: 1px solid #333;
-  padding-bottom: 8px;
-  margin-bottom: 8px;
-  font-size: 10px;
-  color: #888;
+  align-items: center;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--ghost-border);
+}
+.graph-build__info-row:last-child { border-bottom: none; }
+
+.graph-build__info-label { color: var(--text-muted); }
+
+.graph-build__info-val {
+  color: var(--text-primary);
+  font-size: 0.8125rem;
 }
 
-.log-content {
+/* CTA */
+.graph-build__cta { display: flex; gap: 0.75rem; padding-top: 0.5rem; }
+
+.graph-build__complete {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  height: 80px; /* Approx 4 lines visible */
-  overflow-y: auto;
-  padding-right: 4px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: rgba(134, 239, 172, 0.06);
+  border: 1px solid rgba(134, 239, 172, 0.15);
+  border-radius: var(--radius-md);
+  margin-top: 0.75rem;
 }
 
-.log-content::-webkit-scrollbar {
-  width: 4px;
-}
-
-.log-content::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 2px;
-}
-
-.log-line {
-  font-size: 11px;
-  display: flex;
-  gap: 12px;
-  line-height: 1.5;
-}
-
-.log-time {
-  color: #666;
-  min-width: 75px;
-}
-
-.log-msg {
-  color: #CCC;
-  word-break: break-all;
-}
+/* Overlay transition */
+.overlay-enter-active, .overlay-leave-active { transition: all 250ms var(--ease-out); }
+.overlay-enter-from { opacity: 0; transform: translateY(-8px); }
+.overlay-leave-to   { opacity: 0; transform: translateY(4px); }
 </style>

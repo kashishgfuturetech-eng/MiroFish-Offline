@@ -1,15 +1,15 @@
 <div align="center">
 
-<img src="./static/image/mirofish-offline-banner.png" alt="MiroFish Offline" width="100%"/>
+<img src="./static/image/Predly-banner.png" alt="MiroFish Offline" width="100%"/>
 
-# MiroFish-Offline
+# Predly
 
 **Fully local fork of [MiroFish](https://github.com/666ghj/MiroFish) — no cloud APIs required. English UI.**
 
 *A multi-agent swarm intelligence engine that simulates public opinion, market sentiment, and social dynamics. Entirely on your hardware.*
 
-[![GitHub Stars](https://img.shields.io/github/stars/nikmcfly/MiroFish-Offline?style=flat-square&color=DAA520)](https://github.com/nikmcfly/MiroFish-Offline/stargazers)
-[![GitHub Forks](https://img.shields.io/github/forks/nikmcfly/MiroFish-Offline?style=flat-square)](https://github.com/nikmcfly/MiroFish-Offline/network)
+[![GitHub Stars](https://img.shields.io/github/stars/nikmcfly/Predly?style=flat-square&color=DAA520)](https://github.com/nikmcfly/Predly/stargazers)
+[![GitHub Forks](https://img.shields.io/github/forks/nikmcfly/Predly?style=flat-square)](https://github.com/nikmcfly/Predly/network)
 [![Docker](https://img.shields.io/badge/Docker-Build-2496ED?style=flat-square&logo=docker&logoColor=white)](https://hub.docker.com/)
 [![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL--3.0-blue?style=flat-square)](./LICENSE)
 
@@ -21,7 +21,7 @@ MiroFish is a multi-agent simulation engine: upload any document (press release,
 
 The [original MiroFish](https://github.com/666ghj/MiroFish) was built for the Chinese market (Chinese UI, Zep Cloud for knowledge graphs, DashScope API). This fork makes it **fully local and fully English**:
 
-| Original MiroFish | MiroFish-Offline |
+| Original MiroFish | Predly |
 |---|---|
 | Chinese UI | **English UI** (1,000+ strings translated) |
 | Zep Cloud (graph memory) | **Neo4j Community Edition 5.15** |
@@ -40,7 +40,7 @@ The [original MiroFish](https://github.com/666ghj/MiroFish) was built for the Ch
 ## Screenshot
 
 <div align="center">
-<img src="./static/image/mirofish-offline-screenshot.jpg" alt="MiroFish Offline — English UI" width="100%"/>
+<img src="./static/image/Predly-screenshot.jpg" alt="MiroFish Offline — English UI" width="100%"/>
 </div>
 
 ## Quick Start
@@ -53,8 +53,8 @@ The [original MiroFish](https://github.com/666ghj/MiroFish) was built for the Ch
 ### Option A: Docker (easiest)
 
 ```bash
-git clone https://github.com/nikmcfly/MiroFish-Offline.git
-cd MiroFish-Offline
+git clone https://github.com/nikmcfly/Predly.git
+cd Predly
 cp .env.example .env
 
 # Start all services (Neo4j, Ollama, MiroFish)

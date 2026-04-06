@@ -1,266 +1,610 @@
 <template>
-  <div class="home-container">
-    <!-- Top Navigation Bar -->
-    <nav class="navbar" :style="s.navbar">
-      <div class="nav-brand" :style="s.navBrand">MIROFISH OFFLINE</div>
-      <div class="nav-links" :style="s.navLinks">
-        <a href="https://github.com/nikmcfly/MiroFish-Offline" target="_blank" class="github-link" :style="s.githubLink">
-          Visit our Github <span>↗</span>
-        </a>
-      </div>
-    </nav>
+  <div class="home">
+    <!-- Background orbs -->
+    <div class="orb orb-orange" style="width:600px;height:600px;top:-200px;right:-100px;opacity:0.6;"></div>
+    <div class="orb orb-blue" style="width:500px;height:500px;bottom:-150px;left:-100px;opacity:0.5;"></div>
 
-    <div class="main-content" :style="s.mainContent">
-      <!-- Hero Section -->
-      <section class="hero-section" :style="s.heroSection">
-        <div class="hero-left" :style="s.heroLeft">
-          <div class="tag-row" :style="s.tagRow">
-            <span class="orange-tag" :style="s.orangeTag">Offline Multi-Agent Simulation Engine</span>
-            <span class="version-text" :style="s.versionText">/ v0.1-preview</span>
+    <!-- Nav -->
+    <TopNav />
+
+    <main class="home__main">
+      <!-- ── Hero Section ── -->
+      <section class="home__hero">
+        <div class="home__hero-left">
+          <div class="home__tag-row animate-fade-up" style="animation-delay:0ms">
+            <span class="chip chip-orange">Offline Multi-Agent Simulation Engine</span>
+            <span class="home__version label-sm">/ v0.1-preview</span>
           </div>
 
-          <h1 class="main-title" :style="s.mainTitle">
+          <h1 class="home__headline display-lg animate-fade-up" style="animation-delay:80ms">
             Upload Any Document<br>
-            <span class="gradient-text" :style="s.gradientText">Predict What Happens Next</span>
+            <span class="home__headline-accent">Predict What Happens Next</span>
           </h1>
 
-          <div class="hero-desc" :style="s.heroDesc">
-            <p :style="s.heroDescP">
-              From a single document, <span :style="s.highlightBold">MiroFish Offline</span> extracts reality seeds and builds a parallel world of <span :style="s.highlightOrange">autonomous AI agents</span> — running entirely on your machine. Inject variables, observe emergent behavior, and find <span :style="s.highlightCode">"local optima"</span> in complex social dynamics.
-            </p>
-            <p class="slogan-text" :style="s.sloganText">
-              Your data never leaves your machine. The future is simulated locally<span :style="s.blinkingCursor">_</span>
-            </p>
-          </div>
-
-          <div class="decoration-square" :style="s.decorationSquare"></div>
-        </div>
-
-        <div class="hero-right" :style="s.heroRight">
-          <div class="logo-container" :style="s.logoContainer">
-            <img src="../assets/logo/MiroFish_logo_left.jpeg" alt="MiroFish Logo" :style="s.heroLogo" />
-          </div>
-          <button :style="s.scrollDownBtn" @click="scrollToBottom">↓</button>
-        </div>
-      </section>
-
-      <!-- Dashboard: Two-Column Layout -->
-      <section class="dashboard-section" :style="s.dashboardSection">
-        <!-- Left Column: Status & Steps -->
-        <div class="left-panel" :style="s.leftPanel">
-          <div class="panel-header" :style="s.panelHeader">
-            <span :style="s.statusDot">■</span> System Status
-          </div>
-
-          <h2 class="section-title" :style="s.sectionTitle">Ready</h2>
-          <p class="section-desc" :style="s.sectionDesc">
-            Local prediction engine on standby. Upload unstructured data to initialize a simulation.
+          <p class="home__desc animate-fade-up" style="animation-delay:160ms">
+            From a single document, <strong class="home__strong">MiroFish Offline</strong> extracts
+            reality seeds and builds a parallel world of
+            <span class="home__accent">autonomous AI agents</span> — running entirely on your machine.
+            Inject variables, observe emergent behavior, and find
+            <code class="home__code">"local optima"</code> in complex social dynamics.
           </p>
 
-          <div class="metrics-row" :style="s.metricsRow">
-            <div class="metric-card" :style="s.metricCard">
-              <div class="metric-value" :style="s.metricValue">Free</div>
-              <div class="metric-label" :style="s.metricLabel">Runs on your hardware</div>
-            </div>
-            <div class="metric-card" :style="s.metricCard">
-              <div class="metric-value" :style="s.metricValue">Private</div>
-              <div class="metric-label" :style="s.metricLabel">100% offline, no cloud</div>
-            </div>
+          <div class="home__slogan animate-fade-up" style="animation-delay:200ms">
+            Your data never leaves your machine. The future is simulated locally<span class="home__cursor">_</span>
           </div>
 
-          <div class="steps-container" :style="s.stepsContainer">
-            <div class="steps-header" :style="s.stepsHeader">
-               <span :style="s.diamondIcon">◇</span> Workflow Sequence
-            </div>
-            <div :style="s.workflowList">
-              <div v-for="(step, i) in steps" :key="i" :style="s.workflowItem">
-                <span :style="s.stepNum">{{ step.num }}</span>
-                <div :style="s.stepInfo">
-                  <div :style="s.stepTitle">{{ step.title }}</div>
-                  <div :style="s.stepDesc">{{ step.desc }}</div>
-                </div>
-              </div>
-            </div>
+          <div class="home__cta-row animate-fade-up" style="animation-delay:240ms">
+            <button class="btn-primary home__cta-btn" @click="scrollToConsole">
+              <span class="material-symbols-outlined" style="font-size:18px">rocket_launch</span>
+              Start Engine
+            </button>
+            <a
+              href="https://github.com/nikmcfly/Predly"
+              target="_blank"
+              class="btn-secondary"
+            >
+              <span class="material-symbols-outlined" style="font-size:16px">open_in_new</span>
+              View Github
+            </a>
           </div>
         </div>
 
-        <!-- Right Column: Interactive Console -->
-        <div class="right-panel" :style="s.rightPanel">
-          <div class="console-box" :style="s.consoleBox">
-            <div :style="s.consoleSection">
-              <div class="console-header" :style="s.consoleHeader">
-                <span>01 / Reality Seeds</span>
-                <span>Supported: PDF, MD, TXT</span>
+        <div class="home__hero-right animate-fade-up" style="animation-delay:120ms">
+          <!-- Stats cluster -->
+          <div class="home__stat-cluster">
+            <div class="home__stat-card card">
+              <div class="home__stat-orb orb-blue" style="width:80px;height:80px;top:-20px;right:-20px;opacity:0.5;"></div>
+              <span class="label-sm" style="color:var(--text-muted)">Mode</span>
+              <div class="home__stat-value font-headline">Free</div>
+              <div class="home__stat-label">Runs on your hardware</div>
+            </div>
+            <div class="home__stat-card card">
+              <div class="home__stat-orb orb-orange" style="width:80px;height:80px;top:-20px;right:-20px;opacity:0.5;"></div>
+              <span class="label-sm" style="color:var(--text-muted)">Privacy</span>
+              <div class="home__stat-value font-headline">Private</div>
+              <div class="home__stat-label">100% offline, no cloud</div>
+            </div>
+            <div class="home__stat-card home__stat-card--wide card">
+              <span class="label-sm" style="color:var(--text-muted)">System Status</span>
+              <div style="display:flex;align-items:center;gap:.625rem;margin-top:.375rem">
+                <span class="home__status-dot"></span>
+                <div class="home__stat-value font-headline" style="font-size:1.25rem">Ready</div>
               </div>
+              <div class="home__stat-label">Local prediction engine on standby</div>
+            </div>
+          </div>
+
+          <!-- Workflow steps -->
+          <div class="home__steps card">
+            <div class="home__steps-header label-sm" style="color:var(--text-muted)">
+              <span style="color:var(--primary)">◇</span> Workflow Sequence
+            </div>
+            <div class="home__steps-list">
               <div
-                :style="s.uploadZone"
-                @dragover.prevent="handleDragOver"
-                @dragleave.prevent="handleDragLeave"
-                @drop.prevent="handleDrop"
-                @click="triggerFileInput"
+                v-for="(step, i) in workflowSteps"
+                :key="i"
+                class="home__step"
+                :style="`animation-delay:${(i + 5) * 60}ms`"
               >
-                <input ref="fileInput" type="file" multiple accept=".pdf,.md,.txt" @change="handleFileSelect" style="display: none" :disabled="loading" />
-                <div v-if="files.length === 0" :style="s.uploadPlaceholder">
-                  <div :style="s.uploadIcon">↑</div>
-                  <div :style="s.uploadTitle">Drag & drop files here</div>
-                  <div :style="s.uploadHint">or click to browse</div>
+                <span class="home__step-num font-mono">{{ step.num }}</span>
+                <div class="home__step-body">
+                  <div class="home__step-title">{{ step.title }}</div>
+                  <div class="home__step-desc">{{ step.desc }}</div>
                 </div>
-                <div v-else :style="s.fileList">
-                  <div v-for="(file, index) in files" :key="index" :style="s.fileItem">
-                    <span>📄</span>
-                    <span :style="s.fileName">{{ file.name }}</span>
-                    <button @click.stop="removeFile(index)" :style="s.removeBtn">×</button>
-                  </div>
-                </div>
+                <span class="home__step-arrow material-symbols-outlined">arrow_forward</span>
               </div>
-            </div>
-
-            <div :style="s.consoleDivider"><span :style="s.consoleDividerText">Parameters</span></div>
-
-            <div :style="s.consoleSection">
-              <div class="console-header" :style="s.consoleHeader">
-                <span>>_ 02 / Simulation Prompt</span>
-              </div>
-              <div :style="s.inputWrapper">
-                <textarea v-model="formData.simulationRequirement" :style="s.codeInput" placeholder="// Describe your simulation or prediction goal in natural language" rows="6" :disabled="loading"></textarea>
-                <div :style="s.modelBadge">Engine: Ollama + Neo4j (local)</div>
-              </div>
-            </div>
-
-            <div :style="s.btnSection">
-              <button :style="s.startEngineBtn" @click="startSimulation" :disabled="!canSubmit || loading">
-                <span v-if="!loading">Start Engine</span>
-                <span v-else>Initializing...</span>
-                <span>→</span>
-              </button>
             </div>
           </div>
         </div>
       </section>
 
-      <HistoryDatabase />
-    </div>
+      <!-- ── Console Section ── -->
+      <section class="home__console" ref="consoleRef">
+        <div class="home__console-header">
+          <div class="step-tag">01 / Reality Seeds</div>
+          <span class="label-sm" style="color:var(--text-muted)">Supported: PDF, MD, TXT</span>
+        </div>
+
+        <div class="home__console-grid">
+          <!-- Upload Zone -->
+          <div class="home__upload-zone card" @dragover.prevent="dragging=true" @dragleave="dragging=false" @drop.prevent="handleDrop" @click="triggerFileInput" :class="{'home__upload-zone--drag': dragging, 'home__upload-zone--filled': files.length}">
+            <input ref="fileInput" type="file" multiple accept=".pdf,.md,.txt" style="display:none" @change="handleFileSelect" />
+
+            <div v-if="!files.length" class="home__upload-placeholder">
+              <div class="home__upload-icon">
+                <span class="material-symbols-outlined" style="font-size:32px;color:var(--text-muted)">cloud_upload</span>
+              </div>
+              <div class="home__upload-title">Drop reality seeds here</div>
+              <div class="label-sm" style="color:var(--text-muted)">PDF, MD, TXT — your local data stays local</div>
+            </div>
+
+            <div v-else class="home__file-list">
+              <div v-for="(f, i) in files" :key="i" class="home__file-item">
+                <span class="material-symbols-outlined" style="font-size:16px;color:var(--secondary)">description</span>
+                <span class="home__file-name font-mono">{{ f.name }}</span>
+                <span class="home__file-size label-sm">{{ formatSize(f.size) }}</span>
+                <button class="home__file-remove" @click.stop="removeFile(i)">
+                  <span class="material-symbols-outlined" style="font-size:16px">close</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Input + CTA -->
+          <div class="home__input-side">
+            <div class="home__divider-label label-sm">02 / Context Prompt</div>
+            <div class="home__textarea-wrap">
+              <textarea
+                v-model="prompt"
+                class="input-field home__textarea"
+                rows="5"
+                placeholder="Describe your simulation goal, target audience, or specific dynamics to observe…"
+              ></textarea>
+              <span class="home__model-badge font-mono label-sm">claude-3-5-sonnet · local</span>
+            </div>
+
+            <button
+              class="home__start-btn btn-primary"
+              :disabled="!canStart"
+              @click="startEngine"
+            >
+              <span>START ENGINE</span>
+              <span class="material-symbols-outlined" style="font-size:20px">arrow_forward</span>
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import HistoryDatabase from '../components/HistoryDatabase.vue'
-
-const mono = 'JetBrains Mono, monospace'
-const sans = 'Space Grotesk, Noto Sans SC, system-ui, sans-serif'
-
-const s = reactive({
-  navbar: { height: '60px', background: '#000', color: '#fff', display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 40px' },
-  navBrand: { fontFamily: mono, fontWeight: '800', letterSpacing: '1px', fontSize: '1.2rem' },
-  navLinks: { display: 'flex', alignItems: 'center' },
-  githubLink: { color: '#fff', textDecoration: 'none', fontFamily: mono, fontSize: '0.9rem', fontWeight: '500', display: 'flex', alignItems: 'center', gap: '8px' },
-  mainContent: { maxWidth: '1400px', margin: '0 auto', padding: '60px 40px' },
-  heroSection: { display: 'flex', justifyContent: 'space-between', marginBottom: '80px', position: 'relative' },
-  heroLeft: { flex: '1', paddingRight: '60px' },
-  tagRow: { display: 'flex', alignItems: 'center', gap: '15px', marginBottom: '25px', fontFamily: mono, fontSize: '0.8rem' },
-  orangeTag: { background: '#FF4500', color: '#fff', padding: '4px 10px', fontWeight: '700', letterSpacing: '1px', fontSize: '0.75rem' },
-  versionText: { color: '#999', fontWeight: '500', letterSpacing: '0.5px' },
-  mainTitle: { fontSize: '4.5rem', lineHeight: '1.2', fontWeight: '500', margin: '0 0 40px 0', letterSpacing: '-2px', color: '#000' },
-  gradientText: { background: 'linear-gradient(90deg, #000 0%, #444 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', display: 'inline-block' },
-  heroDesc: { fontSize: '1.05rem', lineHeight: '1.8', color: '#666', maxWidth: '640px', marginBottom: '50px', fontWeight: '400', textAlign: 'justify' },
-  heroDescP: { marginBottom: '1.5rem' },
-  highlightBold: { color: '#000', fontWeight: '700' },
-  highlightOrange: { color: '#FF4500', fontWeight: '700', fontFamily: mono },
-  highlightCode: { background: 'rgba(0,0,0,0.05)', padding: '2px 6px', borderRadius: '2px', fontFamily: mono, fontSize: '0.9em', color: '#000', fontWeight: '600' },
-  sloganText: { fontSize: '1.2rem', fontWeight: '520', color: '#000', letterSpacing: '1px', borderLeft: '3px solid #FF4500', paddingLeft: '15px', marginTop: '20px' },
-  blinkingCursor: { color: '#FF4500', fontWeight: '700' },
-  decorationSquare: { width: '16px', height: '16px', background: '#FF4500' },
-  heroRight: { flex: '0.8', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', alignItems: 'flex-end' },
-  logoContainer: { width: '100%', display: 'flex', justifyContent: 'flex-end', paddingRight: '40px' },
-  heroLogo: { maxWidth: '500px', width: '100%' },
-  scrollDownBtn: { width: '40px', height: '40px', border: '1px solid #E5E5E5', background: 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#FF4500', fontSize: '1.2rem' },
-  dashboardSection: { display: 'flex', gap: '60px', borderTop: '1px solid #E5E5E5', paddingTop: '60px', alignItems: 'flex-start' },
-  leftPanel: { flex: '0.8', display: 'flex', flexDirection: 'column' },
-  panelHeader: { fontFamily: mono, fontSize: '0.8rem', color: '#999', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '20px' },
-  statusDot: { color: '#FF4500', fontSize: '0.8rem' },
-  sectionTitle: { fontSize: '2rem', fontWeight: '520', margin: '0 0 15px 0' },
-  sectionDesc: { color: '#666', marginBottom: '25px', lineHeight: '1.6' },
-  metricsRow: { display: 'flex', gap: '20px', marginBottom: '15px' },
-  metricCard: { border: '1px solid #E5E5E5', padding: '20px 30px', minWidth: '150px' },
-  metricValue: { fontFamily: mono, fontSize: '1.8rem', fontWeight: '520', marginBottom: '5px' },
-  metricLabel: { fontSize: '0.85rem', color: '#999' },
-  stepsContainer: { border: '1px solid #E5E5E5', padding: '30px', position: 'relative' },
-  stepsHeader: { fontFamily: mono, fontSize: '0.8rem', color: '#999', marginBottom: '25px', display: 'flex', alignItems: 'center', gap: '8px' },
-  diamondIcon: { fontSize: '1.2rem', lineHeight: '1' },
-  workflowList: { display: 'flex', flexDirection: 'column', gap: '20px' },
-  workflowItem: { display: 'flex', alignItems: 'flex-start', gap: '20px' },
-  stepNum: { fontFamily: mono, fontWeight: '700', color: '#000', opacity: '0.3' },
-  stepInfo: { flex: '1' },
-  stepTitle: { fontWeight: '520', fontSize: '1rem', marginBottom: '4px' },
-  stepDesc: { fontSize: '0.85rem', color: '#666' },
-  rightPanel: { flex: '1.2', display: 'flex', flexDirection: 'column' },
-  consoleBox: { border: '1px solid #CCC', padding: '8px' },
-  consoleSection: { padding: '20px' },
-  consoleHeader: { display: 'flex', justifyContent: 'space-between', marginBottom: '15px', fontFamily: mono, fontSize: '0.75rem', color: '#666' },
-  uploadZone: { border: '1px dashed #CCC', height: '200px', overflowY: 'auto', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', background: '#FAFAFA' },
-  uploadPlaceholder: { textAlign: 'center' },
-  uploadIcon: { width: '40px', height: '40px', border: '1px solid #DDD', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 15px', color: '#999' },
-  uploadTitle: { fontWeight: '500', fontSize: '0.9rem', marginBottom: '5px' },
-  uploadHint: { fontFamily: mono, fontSize: '0.75rem', color: '#999' },
-  fileList: { width: '100%', padding: '15px', display: 'flex', flexDirection: 'column', gap: '10px' },
-  fileItem: { display: 'flex', alignItems: 'center', background: '#fff', padding: '8px 12px', border: '1px solid #EEE', fontFamily: mono, fontSize: '0.85rem' },
-  fileName: { flex: '1', margin: '0 10px' },
-  removeBtn: { background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.2rem', color: '#999' },
-  consoleDivider: { display: 'flex', alignItems: 'center', margin: '10px 0', borderTop: '1px solid #EEE' },
-  consoleDividerText: { padding: '0 15px', fontFamily: mono, fontSize: '0.7rem', color: '#BBB', letterSpacing: '1px' },
-  inputWrapper: { position: 'relative', border: '1px solid #DDD', background: '#FAFAFA' },
-  codeInput: { width: '100%', border: 'none', background: 'transparent', padding: '20px', fontFamily: mono, fontSize: '0.9rem', lineHeight: '1.6', resize: 'vertical', outline: 'none', minHeight: '150px' },
-  modelBadge: { position: 'absolute', bottom: '10px', right: '15px', fontFamily: mono, fontSize: '0.7rem', color: '#AAA' },
-  btnSection: { padding: '0 20px 20px' },
-  startEngineBtn: { width: '100%', background: '#000', color: '#fff', border: 'none', padding: '20px', fontFamily: mono, fontWeight: '700', fontSize: '1.1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', cursor: 'pointer', letterSpacing: '1px' },
-})
-
-const steps = [
-  { num: '01', title: 'Graph Build', desc: 'Extract reality seeds from your document, build knowledge graph with Neo4j + GraphRAG' },
-  { num: '02', title: 'Env Setup', desc: 'Generate agent personas, configure simulation parameters via local Ollama LLM' },
-  { num: '03', title: 'Simulation', desc: 'Run multi-agent simulation locally with dynamic memory updates and emergent behavior' },
-  { num: '04', title: 'Report', desc: 'ReportAgent analyzes the simulation results and generates a detailed prediction report' },
-  { num: '05', title: 'Interaction', desc: 'Chat with any agent from the simulated world or discuss findings with ReportAgent' },
-]
+import TopNav from '../components/TopNav.vue'
 
 const router = useRouter()
-
-const formData = ref({ simulationRequirement: '' })
-const files = ref([])
-const loading = ref(false)
-const error = ref('')
-const isDragOver = ref(false)
+const consoleRef = ref(null)
 const fileInput = ref(null)
+const files = ref([])
+const prompt = ref('')
+const dragging = ref(false)
 
-const canSubmit = computed(() => {
-  return formData.value.simulationRequirement.trim() !== '' && files.value.length > 0
-})
+const canStart = computed(() => files.value.length > 0 || prompt.value.trim().length > 10)
 
-const triggerFileInput = () => { if (!loading.value) fileInput.value?.click() }
-const handleFileSelect = (event) => { addFiles(Array.from(event.target.files)) }
-const handleDragOver = (e) => { isDragOver.value = true }
-const handleDragLeave = (e) => { isDragOver.value = false }
-const handleDrop = (e) => { isDragOver.value = false; addFiles(Array.from(e.dataTransfer.files)) }
+const workflowSteps = [
+  { num: '01', title: 'Graph Build',    desc: 'Extract ontology & knowledge graph from reality seeds' },
+  { num: '02', title: 'Env Setup',      desc: 'Configure simulation parameters & agent personas' },
+  { num: '03', title: 'Simulation',     desc: 'Run parallel autonomous agent interactions' },
+  { num: '04', title: 'Report',         desc: 'AI-generated predictive intelligence report' },
+  { num: '05', title: 'Interaction',    desc: 'Query the simulated world with your own prompts' },
+]
 
-const addFiles = (newFiles) => {
-  const allowed = ['.pdf', '.md', '.txt']
-  const valid = newFiles.filter(f => allowed.some(ext => f.name.toLowerCase().endsWith(ext)))
-  files.value = [...files.value, ...valid]
+function scrollToConsole() {
+  consoleRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
-const removeFile = (index) => { files.value.splice(index, 1) }
+function triggerFileInput() { fileInput.value?.click() }
 
-const scrollToBottom = () => { window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' }) }
+function handleFileSelect(e) {
+  const newFiles = Array.from(e.target.files)
+  files.value = [...files.value, ...newFiles]
+}
 
-const startSimulation = () => {
-  if (!canSubmit.value || loading.value) return
-  import('../store/pendingUpload.js').then(({ setPendingUpload }) => {
-    setPendingUpload(files.value, formData.value.simulationRequirement)
-    router.push({ name: 'Process', params: { projectId: 'new' } })
-  })
+function handleDrop(e) {
+  dragging.value = false
+  const dropped = Array.from(e.dataTransfer.files).filter(f =>
+    ['.pdf','.md','.txt'].some(ext => f.name.toLowerCase().endsWith(ext))
+  )
+  files.value = [...files.value, ...dropped]
+}
+
+function removeFile(i) { files.value.splice(i, 1) }
+
+function formatSize(bytes) {
+  if (bytes < 1024) return `${bytes}B`
+  if (bytes < 1048576) return `${(bytes/1024).toFixed(1)}KB`
+  return `${(bytes/1048576).toFixed(1)}MB`
+}
+
+function startEngine() {
+  // Navigate to process view with placeholder projectId
+  router.push(`/process/demo-project-001`)
 }
 </script>
 
-<!-- Styles loaded from Home.css via import -->
+<style scoped>
+.home {
+  min-height: 100vh;
+  background: var(--surface);
+  position: relative;
+  overflow-x: hidden;
+}
+
+.home__main {
+  max-width: 1360px;
+  margin: 0 auto;
+  padding: 100px 2.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 5rem;
+}
+
+/* ── Hero ── */
+.home__hero {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4rem;
+  align-items: start;
+}
+
+.home__tag-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.home__version {
+  color: var(--text-muted);
+}
+
+.home__headline {
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+}
+
+.home__headline-accent {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.home__desc {
+  color: var(--text-secondary);
+  font-size: 1rem;
+  line-height: 1.85;
+  max-width: 560px;
+  margin-bottom: 1.5rem;
+}
+
+.home__strong { color: var(--text-primary); font-weight: 700; }
+
+.home__accent {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.home__code {
+  background: var(--surface-container-high);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  color: var(--secondary);
+  border: 1px solid var(--ghost-border);
+}
+
+.home__slogan {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  border-left: 3px solid var(--primary-container);
+  padding-left: 1rem;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
+.home__cursor {
+  color: var(--primary);
+  animation: blink 1s step-end infinite;
+  font-weight: 700;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+.home__cta-row {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.home__cta-btn {
+  padding: 0.75rem 1.75rem;
+  font-size: 0.875rem;
+  box-shadow: var(--shadow-glow-primary);
+}
+
+/* ── Hero Right ── */
+.home__hero-right {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.home__stat-cluster {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.home__stat-card {
+  padding: 1.25rem;
+  overflow: hidden;
+}
+
+.home__stat-card--wide {
+  grid-column: span 2;
+}
+
+.home__stat-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(30px);
+  pointer-events: none;
+}
+
+.home__stat-value {
+  font-size: 1.625rem;
+  font-weight: 700;
+  color: var(--primary);
+  line-height: 1.2;
+  margin: 0.25rem 0 0.125rem;
+}
+
+.home__stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.home__status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #86EFAC;
+  box-shadow: 0 0 8px #86EFAC;
+  animation: status-pulse 2s ease-in-out infinite;
+}
+@keyframes status-pulse {
+  0%,100% { box-shadow: 0 0 4px #86EFAC; }
+  50%      { box-shadow: 0 0 12px #86EFAC; }
+}
+
+/* ── Steps Panel ── */
+.home__steps {
+  padding: 1.25rem;
+}
+
+.home__steps-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  letter-spacing: 0.08em;
+}
+
+.home__steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.home__step {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 0.625rem 0.75rem;
+  border-radius: var(--radius-md);
+  transition: background var(--duration-fast);
+  cursor: default;
+  animation: slide-right 400ms var(--ease-out) both;
+}
+.home__step:hover {
+  background: var(--surface-container-high);
+}
+.home__step:hover .home__step-arrow {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.home__step-num {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 24px;
+}
+
+.home__step-body { flex: 1; }
+
+.home__step-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.home__step-desc {
+  font-size: 0.6875rem;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+.home__step-arrow {
+  font-size: 14px;
+  color: var(--primary);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity var(--duration-fast), transform var(--duration-fast);
+}
+
+/* ── Console Section ── */
+.home__console {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding-top: 3rem;
+  border-top: 1px solid var(--ghost-border);
+}
+
+.home__console-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.home__console-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  align-items: start;
+}
+
+/* Upload Zone */
+.home__upload-zone {
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  border: 1px dashed rgba(171, 137, 127, 0.2);
+  transition: border-color var(--duration-fast), background var(--duration-fast);
+  padding: 1.5rem;
+}
+.home__upload-zone:hover,
+.home__upload-zone--drag {
+  border-color: var(--primary);
+  background: rgba(255, 181, 158, 0.04);
+}
+.home__upload-zone--filled {
+  align-items: flex-start;
+  border-style: solid;
+}
+
+.home__upload-placeholder {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.home__upload-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-container-high);
+  border: 1px solid var(--ghost-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.home__upload-title {
+  font-weight: 600;
+  font-size: 0.9375rem;
+  color: var(--text-primary);
+}
+
+.home__file-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.home__file-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.625rem 0.75rem;
+  background: var(--surface-container-high);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--ghost-border);
+}
+
+.home__file-name {
+  flex: 1;
+  font-size: 0.8125rem;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home__file-size {
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  flex-shrink: 0;
+}
+
+.home__file-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0.125rem;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  transition: color var(--duration-fast);
+}
+.home__file-remove:hover { color: var(--error); }
+
+/* Input Side */
+.home__input-side {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.home__divider-label {
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--ghost-border);
+}
+
+.home__textarea-wrap {
+  position: relative;
+}
+
+.home__textarea {
+  resize: vertical;
+  min-height: 140px;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.65;
+}
+
+.home__model-badge {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 1rem;
+  color: var(--text-muted);
+  font-size: 0.6875rem;
+  pointer-events: none;
+}
+
+.home__start-btn {
+  width: 100%;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+  box-shadow: var(--shadow-glow-primary);
+  transition: all var(--duration-normal) var(--ease-out);
+}
+.home__start-btn:disabled {
+  background: var(--surface-container-high);
+  color: var(--text-muted);
+  cursor: not-allowed;
+  box-shadow: none;
+  filter: none;
+  transform: none;
+}
+
+@media (max-width: 1024px) {
+  .home__hero { grid-template-columns: 1fr; }
+  .home__console-grid { grid-template-columns: 1fr; }
+}
+</style>
