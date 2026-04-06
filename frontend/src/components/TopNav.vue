@@ -24,7 +24,7 @@
     <div class="topnav__actions">
       <slot name="actions">
         <a
-          href="https://github.com/nikmcfly/Predly"
+          href="https://github.com/nikmcfly/MiroFish-Offline.git"
           target="_blank"
           class="btn-ghost topnav__github label-sm"
         >
